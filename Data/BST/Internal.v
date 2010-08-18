@@ -420,6 +420,25 @@ Definition Nequal (x y: N): bool :=
     | Eq => true
     | _ => false
   end.
+
+Import Bool.
+
+Lemma Nequal_equal:
+  forall (x y: N),
+    Is_true (Nequal x y) -> x = y.
+  intros x y.
+  compute [Is_true Nequal].
+  intro neq.
+  apply Ncompare_Eq_eq.
+  generalize neq.
+  clear neq.
+  set (b := x ?= y).
+  case b.
+  auto.
+  apply False_ind.
+  apply False_ind.
+  Qed.
+  
       
 Definition validsize : Map -> bool :=
   fun t => Nequal (realsize t) (size t).
@@ -427,7 +446,6 @@ Definition validsize : Map -> bool :=
 Definition valid (t:Map) :=
   balanced t && ordered t && validsize t.
 
-Import Bool.
 
 Lemma validsize_tip:
   Is_true (validsize Tip).
@@ -463,20 +481,12 @@ Lemma validsize_balanceLT:
   clear r vr.
   generalize vl.
   clear vl.
-  compute [Nequal Is_true].
-  intro istrue.
-  apply Ncompare_Eq_eq.
-  generalize istrue.
-  clear istrue.
-  set (b := realsize l ?= size l).
-  case b.
-  auto.
-  intro f.
-  apply False_ind.
-  exact f.
-  intro f.
-  apply False_ind.
-  exact f.
+  apply Nequal_equal.
+  compute [Is_true Nequal].
+  assert ((realsize (Bin (1 + size l + size r) kx x l r)
+        ?= size (Bin (1 + size l + size r) kx x l r)) = Eq).
+  apply Ncompare_eq_comp.
+  rewrite <- H.
   assert (realsize r = size r).
   clear l vl H.
   generalize vr.
@@ -491,24 +501,25 @@ Lemma validsize_balanceLT:
   auto.
   apply False_ind.
   apply False_ind.
-  rewrite <- H.
   rewrite <- H0.
+  clear H H0.
   compute [Is_true].
   assert (realsize (Bin (1 + realsize l + realsize r) kx x l r) =
   1 + realsize l + realsize r).
   compute [realsize].
   reflexivity.
-  rewrite H1.
-  clear H1.
+  rewrite H.
+  clear H.
   assert (1 + realsize l + realsize r = (size (Bin (1 + realsize l + realsize r) kx x l r))).
   compute [size].
   reflexivity.
-  rewrite <- H1.
+  rewrite <- H.
   compute [Nequal].
   assert ((1 + realsize l + realsize r ?= 1 + realsize l + realsize r) = Eq).
   apply Ncompare_eq_comp.
   reflexivity.
-  rewrite H2.
+  reflexivity.
+  rewrite H0.
   auto.
   (* Is_true (validsize (rotateR kx x l r)) *)
   
