@@ -358,14 +358,13 @@ Definition balanceLT : k -> a -> Map -> Map -> Map :=
       | false => rotateR k x l r
     end.
         
-Fixpoint insert: k-> a-> Map -> Map :=
-  fun kx x t =>
-    match t with
-      | Tip => singleton kx x
-      | Bin _ ky y l r =>
-        match X.compare kx ky with
-          | GT _ => balanceGT ky y l (insert kx x r)
-          | LT _ => balanceLT ky y (insert kx x l) r
-          | EQ _ => bin kx x l r
-        end
-    end.
+Fixpoint insert (kx:k) (x:a) (t:Map): Map :=
+  match t with
+    | Tip => singleton kx x
+    | Bin _ ky y l r =>
+      match X.compare kx ky with
+        | GT _ => balanceGT ky y l (insert kx x r)
+        | LT _ => balanceLT ky y (insert kx x l) r
+        | EQ _ => bin kx x l r
+      end
+  end.
