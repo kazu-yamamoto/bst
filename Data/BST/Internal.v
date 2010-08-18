@@ -26,7 +26,7 @@ Fixpoint size (m: Map): Size :=
 
 Definition bin: k -> a -> Map -> Map -> Map := 
   fun key x l r =>
-    Bin (size l + size r + 1) key x l r.
+    Bin (1 + size l + size r) key x l r.
 
 Require Import BinPos.
 
@@ -351,12 +351,11 @@ Definition rotateR : k -> a -> Map -> Map -> Map :=
       | _ => assert_false k x l r
     end.
 
-Definition balanceLT : k -> a -> Map -> Map -> Map :=
-  fun k x l r =>
-    match (isBalanced r l) with
-      | true => bin k x l r
-      | false => rotateR k x l r
-    end.
+Definition balanceLT (kx: k) (x:a) (l r:Map) :=
+  match (isBalanced r l) with
+    | true => bin kx x l r
+    | false => rotateR kx x l r
+  end.
         
 Fixpoint insert (kx:k) (x:a) (t:Map): Map :=
   match t with
@@ -427,6 +426,108 @@ Definition validsize : Map -> bool :=
 
 Definition valid (t:Map) :=
   balanced t && ordered t && validsize t.
+
+Import Bool.
+
+Lemma validsize_tip:
+  Is_true (validsize Tip).
+  simpl.
+  trivial.
+Qed.
+
+Lemma Ncompare_eq_comp : forall n m:N, n = m -> (n ?= m) = Eq.
+  intros n m.
+  generalize Ncompare_eq_correct.
+  intro cor.
+  elim cor with n m.
+  clear cor.
+  intros sound comp.
+  clear sound.
+  exact comp.
+  Qed.
+
+Lemma validsize_balanceLT:
+  forall (kx: k) (x: a) (l r: Map),
+    Is_true (validsize l) ->
+    Is_true (validsize r) ->
+    Is_true (validsize (balanceLT kx x l r)).
+  intros kx x l r.
+  intros vl vr.
+  compute [balanceLT].
+  case (isBalanced r l).
+  generalize vl vr.
+  compute [validsize bin].
+  clear vl vr.
+  intros vl vr.
+  assert (realsize l = size l).
+  clear r vr.
+  generalize vl.
+  clear vl.
+  compute [Nequal Is_true].
+  intro istrue.
+  apply Ncompare_Eq_eq.
+  generalize istrue.
+  clear istrue.
+  set (b := realsize l ?= size l).
+  case b.
+  auto.
+  intro f.
+  apply False_ind.
+  exact f.
+  intro f.
+  apply False_ind.
+  exact f.
+  assert (realsize r = size r).
+  clear l vl H.
+  generalize vr.
+  clear vr.
+  compute [Is_true Nequal].
+  intro vr.
+  apply Ncompare_Eq_eq.
+  generalize vr.
+  clear vr.
+  set (b := realsize r ?= size r).
+  case b.
+  auto.
+  apply False_ind.
+  apply False_ind.
+  rewrite <- H.
+  rewrite <- H0.
+  compute [Is_true].
+  assert (realsize (Bin (1 + realsize l + realsize r) kx x l r) =
+  1 + realsize l + realsize r).
+  compute [realsize].
+  reflexivity.
+  rewrite H1.
+  clear H1.
+  assert (1 + realsize l + realsize r = (size (Bin (1 + realsize l + realsize r) kx x l r))).
+  compute [size].
+  reflexivity.
+  rewrite <- H1.
+  compute [Nequal].
+  assert ((1 + realsize l + realsize r ?= 1 + realsize l + realsize r) = Eq).
+  apply Ncompare_eq_comp.
+  reflexivity.
+  rewrite H2.
+  auto.
+  (* Is_true (validsize (rotateR kx x l r)) *)
+  
+
+Lemma validsize_ind:
+  forall (t: Map) (kx: k) (x: a),
+    Is_true (validsize t) ->
+    Is_true (validsize (insert kx x t)).
+intros t kx x.
+induction t.
+intro pre.
+simpl.
+trivial.
+intro pre.
+simpl.
+case (X.compare kx k0).
+intro irr.
+clear irr.
+(*   Is_true (validsize (balanceLT k0 a0 (insert kx x t1) t2)) *)
 
 
 
