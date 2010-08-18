@@ -77,8 +77,21 @@ Fixpoint b_and (m n: N): N :=
       end
   end.
 *)
+
+Fixpoint lpos (n: positive): nat :=
+  match n with
+    | xH => S O
+    | xO n' => S (lpos n')
+    | xI n' => S (lpos n')
+  end.
       
-      
+Definition l: N -> nat :=
+  fun n =>
+    match n with
+      | N0 => O
+      | Npos p => lpos p
+    end.
+
 
 (* and operation ! *)
  
