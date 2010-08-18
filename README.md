@@ -28,4 +28,9 @@ tree, I'm implementing this based on Roura's paper:
 
 	http://www.brics.dk/BRICS/ALCOM-FT/TR/ALCOMFT-TR-01-167.html
 
+# QuickCheck
 
+You can run tests:
+
+	% cd test
+	% runghc -i.. Test.hs
