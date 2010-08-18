@@ -2,13 +2,17 @@ Require Import OrderedType.
 Require Import BinNat.
 Open Scope N_scope.
 
+Module ordmap (X: OrderedType).
+
 Definition Size := N.
 
 (* strictness ignored because Coq has no fixed evaluation strategy *)
 
 Section map.
 
-  Variable k a: Set.
+Variable a: Type.
+Definition k := X.t.
+
 
 Inductive Map :=
 | Tip: Map
@@ -92,7 +96,7 @@ Definition lN: N -> nat :=
       | Npos p => lpos p
     end.
 
-Definition l: Map -> nat :=
+Definition lmap: Map -> nat :=
   fun t => lN (size t).
 
 Fixpoint near (m n: nat): bool :=
@@ -117,7 +121,7 @@ Lemma near_ind:
 
 Definition isBalanced: Map -> Map -> bool :=
 fun a b =>
-  near (l a) (l b).
+  near (lmap a) (lmap b).
 
 Lemma near_plus_minus:
   forall m n: nat,
@@ -213,11 +217,11 @@ exact H.
 case H0.
 intro mn.
 left.
-clear H0 H ne IHm a k.
+clear H0 H ne IHm a.
 rewrite mn.
 reflexivity.
 intro msn.
-clear H0 H ne IHm a k.
+clear H0 H ne IHm a.
 case msn.
 clear msn.
 intro msn.
@@ -278,3 +282,90 @@ exact H.
 Qed.
 
 
+Definition empty : Map := Tip.
+
+Definition singleton : k -> a -> Map :=
+  fun key x =>
+    Bin (Npos xH) key x Tip Tip.
+
+Definition assert_false := bin.
+
+Require Import Compare_dec.
+
+Definition doubleL : k -> a -> Map -> Map -> Map :=
+  fun k1 x1 t1 t2 =>
+    match t2 with
+      | Bin _ k2 x2 (Bin _ k3 x3 t2 t3) t4 =>
+        bin k3 x3 (bin k1 x1 t1 t2) (bin k2 x2 t3 t4)
+      | _ => assert_false k1 x1 t1 t2 
+    end.
+
+Definition singleL : k -> a -> Map -> Map -> Map :=
+  fun k1 x1 t1 t2 =>
+    match t2 with
+      | (Bin _ k2 x2 t2 t3)  => bin k2 x2 (bin k1 x1 t1 t2) t3
+      | _ => assert_false k1 x1 t1 t2
+    end.
+
+Definition rotateL : k -> a -> Map -> Map -> Map :=
+  fun k x l r =>
+    match r with
+      | Tip => assert_false k x l r
+      | Bin _ _ _ rl rr =>
+        match nat_compare (lmap rr) (lmap rl) with
+          | Lt => doubleL k x l r
+          | _ => singleL k x l r
+        end
+    end.
+
+Definition balanceGT: k -> a -> Map -> Map -> Map :=
+  fun k x l r =>
+    match (isBalanced l r) with
+      | true => bin k x l r
+      | false => rotateL k x l r
+    end.
+
+Definition doubleR : k -> a -> Map -> Map -> Map :=
+  fun k1 x1 t t4 =>
+    match t with
+      | (Bin _ k2 x2 t1 (Bin _ k3 x3 t2 t3)) =>
+        bin k3 x3 (bin k2 x2 t1 t2) (bin k1 x1 t3 t4)
+      | _ => assert_false k1 x1 t t4
+    end.
+
+Definition singleR : k -> a -> Map -> Map -> Map :=
+  fun k1 x1 t t3 =>
+    match t with
+      | (Bin _ k2 x2 t1 t2) => bin k2 x2 t1 (bin k1 x1 t2 t3)
+      | _ => assert_false k1 x1 t t3
+    end.
+
+Definition rotateR : k -> a -> Map -> Map -> Map :=
+  fun k x l r =>
+    match l with
+      | Bin _ _ _ ll lr =>
+        match (nat_compare (lmap ll) (lmap lr)) with
+          | Lt => doubleR k x l r
+          | _ => singleR k x l r
+        end
+      | _ => assert_false k x l r
+    end.
+
+Definition balanceLT : k -> a -> Map -> Map -> Map :=
+  fun k x l r =>
+    match (isBalanced r l) with
+      | true => bin k x l r
+      | false => rotateR k x l r
+    end.
+        
+Fixpoint insert: k-> a-> Map -> Map :=
+  fun kx x t =>
+    match t with
+      | Tip => singleton kx x
+      | Bin _ ky y l r =>
+        match X.compare kx ky with
+          | GT _ => balanceGT ky y l (insert kx x r)
+          | LT _ => balanceLT ky y (insert kx x l) r
+          | EQ _ => bin kx x l r
+        end
+    end.
