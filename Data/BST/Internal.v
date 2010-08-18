@@ -368,3 +368,71 @@ Fixpoint insert (kx:k) (x:a) (t:Map): Map :=
         | EQ _ => bin kx x l r
       end
   end.
+
+Open Scope bool_scope.
+
+Fixpoint balanced (t: Map) : bool :=
+  match t with
+    | Tip => true
+    | Bin _ _ _ l r =>
+      isBalanced l r && isBalanced r l && balanced l && balanced r
+  end.
+
+Definition less_than (x y: k): bool :=
+  match X.compare x y with
+    | LT _ => true
+    | _ => false
+  end.
+
+Definition more_than (x y: k): bool :=
+  match X.compare x y with
+    | GT _ => true
+    | _ => false
+  end.
+
+Fixpoint bounded (lo hi: k -> bool) (t: Map): bool :=
+  match t with
+    | Tip => true
+    | Bin _ kx _ l r =>
+      (lo kx) && (hi kx) && bounded lo (less_than kx) l && bounded (more_than kx) hi r
+  end.
+
+Definition const (p q: Type): p -> q -> p.
+intros p q.
+intros x y.
+exact x.
+Defined.
+
+Definition ordered : Map -> bool :=
+  fun t =>
+    bounded (const bool k true) (const bool k true) t.
+
+Require Import OrderedTypeEx.
+
+Fixpoint realsize (t: Map) :=
+  match t with
+    | Tip => N0
+    | Bin sz _ _ l r =>
+      1 + (realsize l) + (realsize r)
+  end.
+
+Definition Nequal (x y: N): bool :=
+  match Ncompare x y with
+    | Eq => true
+    | _ => false
+  end.
+      
+Definition validsize : Map -> bool :=
+  fun t => Nequal (realsize t) (size t).
+
+Definition valid (t:Map) :=
+  balanced t && ordered t && validsize t.
+
+
+
+End map.
+
+
+
+Extraction Language Haskell.
+Recursive Extraction insert.
