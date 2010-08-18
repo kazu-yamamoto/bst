@@ -464,6 +464,75 @@ Lemma Ncompare_eq_comp : forall n m:N, n = m -> (n ?= m) = Eq.
   exact comp.
   Qed.
 
+Lemma equal_Nequal:
+  forall (x y: N),
+    x = y -> Is_true (Nequal x y).
+  intros x y.
+  intro pre.
+  compute [Is_true Nequal].
+  assert ((x ?= y) = Eq).
+  apply Ncompare_eq_comp.
+  exact pre.
+  rewrite H.
+  trivial.
+  Qed.
+  
+
+
+
+Lemma validsize_bin:
+  forall (kx : k) (x : a) (l r : Map),
+    Is_true (validsize l) -> Is_true (validsize r) ->
+    Is_true (validsize (bin kx x l r)).
+  intros kx x l r.
+  compute [validsize].
+  intros lvalid rvalid.
+  assert (realsize (bin kx x l r) = size (bin kx x l r)).
+  compute [bin].
+  assert (realsize l = size l).
+  clear rvalid r.
+  apply Nequal_equal.
+  exact lvalid.
+  assert (realsize r = size r).
+  clear lvalid l H.
+  apply Nequal_equal.
+  exact rvalid.
+  rewrite <- H.
+  rewrite <- H0.
+  compute [size realsize].
+  reflexivity.
+  apply equal_Nequal.
+  exact H.
+  Qed.
+
+  (* this is wrong
+Lemma validsize_bin_inner:
+  forall (s : Size) (k0 : k) (a0 : a) (l1 : Map) (l2 : Map), 
+    Is_true (validsize (Bin s k0 a0 l1 l2)) -> Is_true (validsize l1).
+*)
+
+Lemma validsize_singleR:
+  forall (kx: k) (x: a) (l r: Map),
+    Is_true (validsize l) ->
+    Is_true (validsize r) ->
+    l <> Tip ->
+    Is_true (validsize (singleR kx x l r)).
+  intros kx x l.
+  generalize kx x.
+  clear kx x.
+  destruct l.
+  intros kx x r.
+  intros lvalid rvalid.
+  intro nontip.
+  apply False_ind.
+  apply nontip.
+  reflexivity.
+  intros kx x r.
+  compute [singleR].
+  (* this is wrong: apply validsize_bin. *)
+  
+  
+
 Lemma validsize_balanceLT:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize l) ->
