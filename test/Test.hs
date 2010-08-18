@@ -18,7 +18,9 @@ tests = [ {- testGroup "Test Case" [
                testProperty "validity"     prop_Valid
              , testProperty "single"       prop_Single
              , testProperty "insertValid"  prop_InsertValid
-             , testProperty "insertDelete" prop_InsertDelete
+             , testProperty "lookup"       prop_Lookup
+--             , testProperty "insertDelete" prop_InsertDelete
+             , testProperty "delete"       prop_Delete
              , testProperty "deleteValid"  prop_DeleteValid
              ]
         ]
@@ -87,9 +89,18 @@ prop_Single k x = (insert k x empty == singleton k x)
 prop_InsertValid :: Int -> Property
 prop_InsertValid k = forValidUnitTree $ \t -> valid (insert k () t)
 
+prop_Lookup :: Int -> Map Int () -> Bool
+prop_Lookup k t = lookup k (insert k () t) /= Nothing
+
+{- This does not stand for LBST.
 prop_InsertDelete :: Int -> Map Int () -> Property
 prop_InsertDelete k t
-  = (lookup k t == Nothing) ==> delete k (insert k () t) == t
+  = (lookup k t == Nothing) ==> (delete k (insert k () t) == t)
+-}
+
+prop_Delete :: Int -> Map Int () -> Property
+prop_Delete k t
+  = (lookup k t == Nothing) ==> (delete k t == t)
 
 prop_DeleteValid :: Int -> Property
 prop_DeleteValid k
