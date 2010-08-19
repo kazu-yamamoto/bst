@@ -1,5 +1,6 @@
 Require Import OrderedType.
 Require Import BinNat.
+Require Import NArithRing.
 Open Scope N_scope.
 
 Module ordmap (X: OrderedType).
@@ -929,53 +930,10 @@ Lemma validsize_singleR:
   reflexivity.
   rewrite H.
   clear H.
-  assert (
-    realsize l1 + 1 + realsize l2 + realsize r + 1 =
-    realsize l1 + 1 + realsize l2 + (realsize r + 1)
-    ).
-  repeat rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (
-      (1 + realsize r) =
-      (realsize r + 1)
-  ).
-  apply Nplus_comm.
-  rewrite H.
-  reflexivity.
+  ring.
   rewrite H.
   rewrite H1.
-  clear H1.
-  clear H.
-  generalize (1 + size l2 + realsize r).
-  intro n.
-  assert (
-    size l1 + n + 1 = size l1 + 1 + n
-    ).
-  assert (
-    size l1 + n + 1 =
-    size l1 + (n + 1)
-    ).
-  rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert
-    (size l1 + 1 + n = size l1 + ( 1 + n )).
-  rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  assert (n+1 = 1 + n).
-  apply Nplus_comm.
-  rewrite H0.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (size l1 + 1 = 1 + size l1).
-  apply Nplus_comm.
-  rewrite H.
-  reflexivity.
+  ring.
   Qed.
 
   
