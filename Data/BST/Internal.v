@@ -511,6 +511,7 @@ Lemma validsize_bin_inner:
     Is_true (validsize (Bin s k0 a0 l1 l2)) -> Is_true (validsize l1).
 *)
 
+(* this is OK. but can we use this later ?
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize l) ->
@@ -529,10 +530,33 @@ Lemma validsize_singleR:
   reflexivity.
   intros kx x r.
   compute [singleR].
+  compute [validsize].
+  intros one two.
+  intro irr.
+  clear irr.
+  apply equal_Nequal.
+  apply Nequal_equal in one.
+  apply Nequal_equal in two.
+  assert (size (bin k0 a0 l1 (bin kx x l2 r)) = 1 + size l1 +
+    (1 + size l2 + size r)).
+  compute [size].
+  reflexivity.
+  rewrite H.
+  clear H.
+  rewrite <- two.
+  clear two.
+  assert (realsize (bin k0 a0 l1 (bin kx x l2 r)) =
+    1 + realsize l1 + 1 + realsize l2 + realsize r).
+  compute [bin].
+  compute [realsize].
+  compute.
+  reflexivity.
+*)  
+  
   (* this is wrong: apply validsize_bin. *)
   
   
-
+(* this is OK, but can we use thie? 
 Lemma validsize_balanceLT:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize l) ->
@@ -589,7 +613,7 @@ Lemma validsize_balanceLT:
   reflexivity.
   reflexivity.
   rewrite H0.
-  auto.
+  auto. *)
   (* Is_true (validsize (rotateR kx x l r)) *)
   
 
