@@ -62,63 +62,63 @@ test_ticket4242 = (valid $ deleteMin $ deleteMin $ fromList [ (i, ()) | i <- [0,
 instance (Ord k,Arbitrary k,Arbitrary a) => Arbitrary (Map k a) where
   arbitrary = fromList <$> (zip <$> arbitrary <*> arbitrary)
 
-type UMAP = Map Int ()
-type IMAP = Map Int Int
+type UMap = Map Int ()
+type IMap = Map Int Int
 
 ----------------------------------------------------------------
 
-prop_fromList :: UMAP -> Bool
+prop_fromList :: UMap -> Bool
 prop_fromList t = valid t
 
 prop_singleton :: Int -> Int -> Bool
 prop_singleton k x = insert k x empty == singleton k x
 
-prop_insert :: Int -> UMAP -> Bool
+prop_insert :: Int -> UMap -> Bool
 prop_insert k t = valid $ insert k () t
 
-prop_lookup :: Int -> UMAP -> Bool
+prop_lookup :: Int -> UMap -> Bool
 prop_lookup k t = lookup k (insert k () t) /= Nothing
 
-prop_insertDelete :: Int -> UMAP -> Bool
+prop_insertDelete :: Int -> UMap -> Bool
 prop_insertDelete k t = valid $ delete k (insert k () t)
 
-prop_insertDelete2 :: Int -> UMAP -> Property
+prop_insertDelete2 :: Int -> UMap -> Property
 prop_insertDelete2 k t = (lookup k t == Nothing) ==> (delete k (insert k () t) == t)
 
-prop_deleteNonMember :: Int -> UMAP -> Property
+prop_deleteNonMember :: Int -> UMap -> Property
 prop_deleteNonMember k t = (lookup k t == Nothing) ==> (delete k t == t)
 
-prop_deleteMin :: UMAP -> Bool
+prop_deleteMin :: UMap -> Bool
 prop_deleteMin t = valid $ deleteMin $ deleteMin t
 
-prop_deleteMax :: UMAP -> Bool
+prop_deleteMax :: UMap -> Bool
 prop_deleteMax t = valid $ deleteMax $ deleteMax t
 
 ----------------------------------------------------------------
 
-prop_join :: Int -> UMAP -> Bool
+prop_join :: Int -> UMap -> Bool
 prop_join k t = let (l,r) = split k t
                 in valid (join k () l r)
 
-prop_merge :: Int -> UMAP -> Bool
+prop_merge :: Int -> UMap -> Bool
 prop_merge k t = let (l,r) = split k t
                  in valid (merge l r)
 
 ----------------------------------------------------------------
 
-prop_union :: UMAP -> UMAP -> Bool
+prop_union :: UMap -> UMap -> Bool
 prop_union t1 t2 = valid (union t1 t2)
 
-prop_unionSingleton :: IMAP -> Int -> Int -> Bool
+prop_unionSingleton :: IMap -> Int -> Int -> Bool
 prop_unionSingleton t k x = union (singleton k x) t == insert k x t
 
-prop_unionAssoc :: IMAP -> IMAP -> IMAP -> Bool
+prop_unionAssoc :: IMap -> IMap -> IMap -> Bool
 prop_unionAssoc t1 t2 t3 = union t1 (union t2 t3) == union (union t1 t2) t3
 
-prop_unionWith :: Map Int Int -> Map Int Int -> Bool
+prop_unionWith :: IMap -> IMap -> Bool
 prop_unionWith t1 t2 = (union t1 t2 == unionWith (\_ y -> y) t2 t1)
 
-prop_unionWith2 :: IMAP -> IMAP -> Bool
+prop_unionWith2 :: IMap -> IMap -> Bool
 prop_unionWith2 t1 t2 = valid (unionWithKey (\_ x y -> x+y) t1 t2)
 
 prop_unionSum :: [(Int,Int)] -> [(Int,Int)] -> Bool
@@ -126,7 +126,7 @@ prop_unionSum xs ys
   = sum (elems (unionWith (+) (fromListWith (+) xs) (fromListWith (+) ys)))
     == (sum (P.map snd xs) + sum (P.map snd ys))
 
-prop_difference :: IMAP -> IMAP -> Bool
+prop_difference :: IMap -> IMap -> Bool
 prop_difference t1 t2 = valid (difference t1 t2)
 
 prop_differenceModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
@@ -134,7 +134,7 @@ prop_differenceModel xs ys
   = sort (keys (difference (fromListWith (+) xs) (fromListWith (+) ys)))
     == sort ((L.\\) (nub (P.map fst xs))  (nub (P.map fst ys)))
 
-prop_intersection :: IMAP -> IMAP -> Bool
+prop_intersection :: IMap -> IMap -> Bool
 prop_intersection t1 t2 = valid (intersection t1 t2)
 
 prop_intersectionModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
