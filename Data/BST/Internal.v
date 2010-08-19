@@ -619,56 +619,35 @@ Lemma validsize_realsize_size:
   apply Nequal_equal.
   Qed.
 
+  Hint Resolve
+    validsize_rec_bin
+    validsize_rec_self validsize_rec_hereditary1 validsize_rec_hereditary2.
+
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize_rec l) ->
     Is_true (validsize_rec r) ->
     Is_true (validsize_rec (singleR kx x l r)).
   intros kx x l r.
-  generalize kx x.
-  clear kx x.
-  destruct l.
-  intros kx x.
-  intros lvalid rvalid.
-  compute [singleR].
-  compute [assert_false].
-  apply validsize_rec_bin.
-  exact lvalid.
-  exact rvalid.
-  intros kx x.
-  compute [singleR].
   intros one two.
-  apply validsize_rec_expand_prop.
-  apply equal_Nequal.
-  autorewrite with sbin.
-  repeat rewrite validsize_realsize_size.
-  reflexivity.
-  apply validsize_rec_self.
-  assumption.
-  apply validsize_rec_self.
-  eapply validsize_rec_hereditary2.
-  apply one.
-  apply validsize_rec_self;
-  eapply validsize_rec_hereditary1;
-  apply one.
-  eapply validsize_rec_hereditary1;
-  apply one.
-  apply validsize_rec_expand_prop.
-  apply equal_Nequal.
-  autorewrite with sbin.
-  repeat rewrite validsize_realsize_size.
-  reflexivity.
-  apply validsize_rec_self.
-  assumption.
-  apply validsize_rec_self.
-  eapply validsize_rec_hereditary2.
-  apply one.
-  eapply validsize_rec_hereditary2.
-  apply one.
-  assumption.
+  compute [singleR].
+  destruct l.
+  eauto.
+  eauto.
 Qed.
 
-
+Lemma validsize_singleL:
+  forall (kx: k) (x: a) (l r: Map),
+    Is_true (validsize_rec l) ->
+    Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (singleL kx x l r)).
+  intros kx x l r.
+  intros one two.
+  compute [singleL].
+  destruct r.
+  eauto.
+  eauto.
+Qed.
 
 Lemma validsize_doubleR:
   forall (t t4: Map)
@@ -676,80 +655,91 @@ Lemma validsize_doubleR:
     Is_true (validsize_rec t) ->
     Is_true (validsize_rec t4) ->
     Is_true (validsize_rec (doubleR k1 x1 t t4)).
-  
-Definition doubleR : k -> a -> Map -> Map -> Map :=
-  fun k1 x1 t t4 =>
-    match t with
-      | (Bin _ k2 x2 t1 (Bin _ k3 x3 t2 t3)) =>
-        bin k3 x3 (bin k2 x2 t1 t2) (bin k1 x1 t3 t4)
-      | _ => assert_false k1 x1 t t4
-    end.
+  intros  t t4 k1 x1.
+  intros tval val4.
+  compute [doubleR].
+  destruct t.
+  eauto.
+  destruct t2.
+  eauto.
+  apply validsize_rec_bin.
+  eauto.
+  eauto.
+  Qed.
+
+Lemma validsize_doubleL:
+  forall (t t4: Map)
+    (k1: k) (x1: a),
+    Is_true (validsize_rec t) ->
+    Is_true (validsize_rec t4) ->
+    Is_true (validsize_rec (doubleL k1 x1 t t4)).
+  intros  t t4 k1 x1.
+  intros tval val4.
+  compute [doubleL].
+  destruct t4.
+  eauto.
+  destruct t4_1.
+  eauto.
+  apply validsize_rec_bin.
+  eauto.
+  eauto.
+  Qed.
 
   
 Lemma validsize_balanceLT:
   forall (kx: k) (x: a) (l r: Map),
-    Is_true (validsize l) ->
-    Is_true (validsize r) ->
-    Is_true (validsize (balanceLT kx x l r)).
+    Is_true (validsize_rec l) ->
+    Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (balanceLT kx x l r)).
   intros kx x l r.
   intros vl vr.
   compute [balanceLT].
   case (isBalanced r l).
-  generalize vl vr.
-  compute [validsize bin].
-  clear vl vr.
-  intros vl vr.
-  assert (realsize l = size l).
-  clear r vr.
-  generalize vl.
-  clear vl.
-  apply Nequal_equal.
-  compute [Is_true Nequal].
-  assert ((realsize (Bin (1 + size l + size r) kx x l r)
-        ?= size (Bin (1 + size l + size r) kx x l r)) = Eq).
-  apply Ncompare_eq_comp.
-  rewrite <- H.
-  assert (realsize r = size r).
-  clear l vl H.
-  generalize vr.
-  clear vr.
-  compute [Is_true Nequal].
-  intro vr.
-  apply Ncompare_Eq_eq.
-  generalize vr.
-  clear vr.
-  set (b := realsize r ?= size r).
-  case b.
   auto.
-  apply False_ind.
-  apply False_ind.
-  rewrite <- H0.
-  clear H H0.
-  compute [Is_true].
-  assert (realsize (Bin (1 + realsize l + realsize r) kx x l r) =
-  1 + realsize l + realsize r).
-  compute [realsize].
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (1 + realsize l + realsize r = (size (Bin (1 + realsize l + realsize r) kx x l r))).
-  compute [size].
-  reflexivity.
-  rewrite <- H.
-  compute [Nequal].
-  assert ((1 + realsize l + realsize r ?= 1 + realsize l + realsize r) = Eq).
-  apply Ncompare_eq_comp.
-  reflexivity.
-  reflexivity.
-  rewrite H0.
-  auto. 
-  (* Is_true (validsize (rotateR kx x l r)) *)
-  
+  compute [rotateR].
+  destruct l.
+  auto.
+  case (nat_compare (lmap l1) (lmap l2)).
+  apply validsize_singleR.
+  auto.
+  auto.
+  apply validsize_doubleR.
+  auto.
+  auto.
+  apply validsize_singleR.
+  auto.
+  auto.
+  Qed.
 
-Lemma validsize_ind:
+Lemma validsize_balanceGT:
+  forall (kx: k) (x: a) (l r: Map),
+    Is_true (validsize_rec l) ->
+    Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (balanceGT kx x l r)).
+  intros kx x l r.
+  intros vl vr.
+  compute [balanceGT].
+  case (isBalanced l r).
+  auto.
+  compute [rotateL].
+  destruct r.
+  auto.
+  case (nat_compare (lmap r2) (lmap r1)).
+  apply validsize_singleL.
+  auto.
+  auto.
+  apply validsize_doubleL.
+  auto.
+  auto.
+  apply validsize_singleL.
+  auto.
+  auto.
+  Qed.
+
+Lemma validsize_insert:
   forall (t: Map) (kx: k) (x: a),
-    Is_true (validsize t) ->
-    Is_true (validsize (insert kx x t)).
+    Is_true (validsize_rec t) ->
+    Is_true (validsize_rec (insert kx x t)).
 intros t kx x.
 induction t.
 intro pre.
@@ -760,8 +750,19 @@ simpl.
 case (X.compare kx k0).
 intro irr.
 clear irr.
-(*   Is_true (validsize (balanceLT k0 a0 (insert kx x t1) t2)) *)
-
+apply validsize_balanceLT.
+apply IHt1.
+eauto.
+eauto.
+intro irr.
+clear irr.
+eauto.
+intro irr.
+clear irr.
+apply validsize_balanceGT.
+eauto.
+eauto.
+Qed.
 
 
 End map.
