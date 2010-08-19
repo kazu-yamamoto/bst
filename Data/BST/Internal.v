@@ -460,18 +460,10 @@ Lemma validsize_bin:
   exact H.
   Qed.
 
-  (* this is wrong
-Lemma validsize_bin_inner:
-  forall (s : Size) (k0 : k) (a0 : a) (l1 : Map) (l2 : Map), 
-    Is_true (validsize (Bin s k0 a0 l1 l2)) -> Is_true (validsize l1).
-*)
-
-(* this is OK. but can we use this later ?
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize l) ->
     Is_true (validsize r) ->
-    l <> Tip ->
     Is_true (validsize (singleR kx x l r)).
   intros kx x l.
   generalize kx x.
@@ -479,16 +471,15 @@ Lemma validsize_singleR:
   destruct l.
   intros kx x r.
   intros lvalid rvalid.
-  intro nontip.
-  apply False_ind.
-  apply nontip.
-  reflexivity.
+  compute [singleR].
+  compute [assert_false].
+  apply validsize_bin.
+  exact lvalid.
+  exact rvalid.
   intros kx x r.
   compute [singleR].
   compute [validsize].
   intros one two.
-  intro irr.
-  clear irr.
   apply equal_Nequal.
   apply Nequal_equal in one.
   apply Nequal_equal in two.
@@ -503,9 +494,135 @@ Lemma validsize_singleR:
   assert (realsize (bin k0 a0 l1 (bin kx x l2 r)) =
     1 + realsize l1 + 1 + realsize l2 + realsize r).
   compute [bin].
-  compute [realsize].
-  compute.
+  simpl.
+  case (realsize l1).
+  case (realsize l2).
+  assert (1 + realsize r = 1 + 0 + realsize r).
+  simpl.
   reflexivity.
+  rewrite H.
+  assert (1 + 1 + 0 = 1 + (1 + 0)).
+  simpl.
+  reflexivity.
+  rewrite H0.
+  clear H H0.
+  apply BinNat.Nplus_assoc.
+  intro p.
+  case p.
+  clear p.
+  intro p.
+  assert ((Npos (Psucc p)~0 + realsize r) = 1 + Npos p~1 + realsize r).
+  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
+  simpl.
+  reflexivity.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  assert (1 + (1 + Npos p~1) = 1 + 1 + Npos p~1).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  clear p.
+  intro p.
+  clear one x kx l1 l2 k0 a0.
+  assert ((Npos p~1 + realsize r) = 1 + Npos p~0 + realsize r).
+  assert (Npos p~1 = 1 + Npos p~0).
+  simpl.
+  reflexivity.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  assert (1 + (1 + Npos p~0) = 1 + 1 + Npos p~0).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  assert ((2 + realsize r) = 1 + 1 + realsize r).
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (1 + (1 + 1) = 1 + 1 + 1).
+  apply Nplus_assoc.
+  rewrite <- H.
+  apply Nplus_assoc.
+  intro p.
+  case p.
+  case (realsize l2).
+  clear p.
+  intro p.
+  assert ((1 + realsize r) = 1 + 0 + realsize r).
+  simpl.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (Npos (Psucc p)~0 + (1 + 0) = Npos (Psucc p)~0 + 1 + 0).
+  apply Nplus_assoc.
+  rewrite <- H.
+  apply Nplus_assoc.
+  clear p.
+  intros p q.
+  case p.
+  clear p.
+  intro p.
+  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
+  reflexivity.
+  rewrite H.
+  assert (Npos (Psucc q)~0 + (1 + Npos p~1) =
+   Npos (Psucc q)~0 + 1 + Npos p~1).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  clear p.
+  intro p.
+  clear kx.
+  clear x.
+  clear one.
+  clear k0 a0 l1 l2.
+  assert ((Npos p~1 + realsize r) =
+    1 + Npos p~0 + realsize r).
+  assert (Npos p~1 = 1 + Npos p~0).
+  reflexivity.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  assert (Npos (Psucc q)~0 + (1 + Npos p~0) =
+   Npos (Psucc q)~0 + 1 + Npos p~0 ).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  assert(
+   (2 + realsize r) =
+   1 + 1 + realsize r).
+  reflexivity.
+  rewrite H.
+  assert (
+    Npos (Psucc q)~0 + (1 + 1) =
+    Npos (Psucc q)~0 + 1 + 1
+  ).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  clear H.
+  apply Nplus_assoc.
+  clear p.
+  intro p.
+  case (realsize l2).
+  clear one x kx l1 l2 k0 a0.
+  Focus.
+  assert ((1 + realsize r) = 1 + 0 + realsize r).
+  reflexivity.
+  rewrite H.
+  assert (
+       Npos p~1 + (1 + 0) = Npos p~1 + 1 + 0
+       ).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  Unfocus.
+  Focus.
+  intro q.
+  case q.
+  clear q.
+  intro q.
+  
 *)  
   
   (* this is wrong: apply validsize_bin. *)
