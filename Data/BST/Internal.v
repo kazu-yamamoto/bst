@@ -30,58 +30,6 @@ Definition bin: k -> a -> Map -> Map -> Map :=
 
 Require Import BinPos.
 
-(*
-This fails because induction does not type match.
-Possible fix: use (option N).   
-
-Fixpoint b_and_pos (m n: positive): N :=
-  match m with
-    | xH =>
-      match n with
-        | xH => Npos xH
-        | xI _ => Npos xH
-        | xO _ => N0
-      end
-    | xI m' =>
-      match n with
-        | xH => xH
-        | xI n' => xI (b_and_pos m' n')
-        | xO n' => xO (b_and_pos m' n')
-      end
-    | xO m' =>
-      xO (b_and_pos m' (Pdiv2 n))
-  end.
-
-*)
-
-
-(*
-This fails because Coq is not convinced this terminates.
-
-Fixpoint b_and (m n: N): N :=
-  match m with
-    | N0 => N0
-    | Npos xH =>
-      match n with
-        | Npos xH => Npos xH
-        | Npos (xI _) => Npos xH
-        | Npos (xO _) => N0
-        | N0 => N0
-      end
-    | Npos (xO m') =>
-      Ndouble (b_and (Npos m') (Ndiv2 n))
-    | Npos (xI m') =>
-      match n with
-        | Npos xH => Npos xH
-        | Npos (xI _) =>
-          Nplus (Npos xH) (Ndouble (b_and (Npos m') (Ndiv2 n)))
-        | Npos (xO _) =>
-          (Ndouble (b_and (Npos m') (Ndiv2 n)))
-        | N0 => N0
-      end
-  end.
-*)
-
 Fixpoint lpos (n: positive): nat :=
   match n with
     | xH => S O
@@ -443,12 +391,19 @@ Lemma Nequal_equal:
 Definition validsize : Map -> bool :=
   fun t => Nequal (realsize t) (size t).
 
+Fixpoint validsize_rec (t: Map): bool :=
+  match t with
+    | Tip => validsize t
+    | Bin _ _ _ l r =>
+      validsize t && validsize_rec l && validsize_rec r
+  end.
+
 Definition valid (t:Map) :=
-  balanced t && ordered t && validsize t.
+  balanced t && ordered t && validsize_rec t.
 
 
-Lemma validsize_tip:
-  Is_true (validsize Tip).
+Lemma validsize_rec_tip:
+  Is_true (validsize_rec Tip).
   simpl.
   trivial.
 Qed.
