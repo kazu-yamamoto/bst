@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Map where
+module TestMap where
 
 import Control.Applicative ((<$>),(<*>))
 import Data.Map.Internal
