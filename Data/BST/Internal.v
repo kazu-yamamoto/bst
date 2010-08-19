@@ -462,7 +462,7 @@ Lemma validsize_bin:
 
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
-    Is_true (validsize l) ->
+    Is_true (validsize_rec l) ->
     Is_true (validsize r) ->
     Is_true (validsize (singleR kx x l r)).
   intros kx x l.
@@ -481,6 +481,18 @@ Lemma validsize_singleR:
   compute [validsize].
   intros one two.
   apply equal_Nequal.
+  assert (Is_true (validsize (Bin s k0 a0 l1 l2))).
+  generalize one.
+  clear one.
+  compute [validsize_rec].
+  case (validsize (Bin s k0 a0 l1 l2)).
+  intro hoge.
+  simpl.
+  trivial.
+  simpl.
+  trivial.
+  rename one into three.
+  rename H into one.
   apply Nequal_equal in one.
   apply Nequal_equal in two.
   assert (size (bin k0 a0 l1 (bin kx x l2 r)) = 1 + size l1 +
@@ -524,7 +536,7 @@ Lemma validsize_singleR:
   apply Nplus_assoc.
   clear p.
   intro p.
-  clear one x kx l1 l2 k0 a0.
+  clear one x kx.
   assert ((Npos p~1 + realsize r) = 1 + Npos p~0 + realsize r).
   assert (Npos p~1 = 1 + Npos p~0).
   simpl.
@@ -576,7 +588,6 @@ Lemma validsize_singleR:
   clear kx.
   clear x.
   clear one.
-  clear k0 a0 l1 l2.
   assert ((Npos p~1 + realsize r) =
     1 + Npos p~0 + realsize r).
   assert (Npos p~1 = 1 + Npos p~0).
@@ -605,7 +616,6 @@ Lemma validsize_singleR:
   clear p.
   intro p.
   case (realsize l2).
-  clear one x kx l1 l2 k0 a0.
   Focus.
   assert ((1 + realsize r) = 1 + 0 + realsize r).
   reflexivity.
@@ -622,8 +632,142 @@ Lemma validsize_singleR:
   case q.
   clear q.
   intro q.
+  assert (
+     (Npos (Psucc q)~0 + realsize r) =
+     1 + Npos q~1 + realsize r).
+  assert (
+    Npos (Psucc q)~0 = 1 + Npos q~1
+    ).
+  reflexivity.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+    Npos p~1 + (1 + Npos q~1) =
+    Npos p~1 + 1 + Npos q~1).
+  apply Nplus_assoc.
+  rewrite <- H.
+  clear H.
+  apply Nplus_assoc.
+  clear q.
+  intro q.
+  assert 
+    ((Npos q~1) = 1 + Npos q~0).
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+   Npos p~1 + (1 + Npos q~0) =
+   Npos p~1 + 1 + Npos q~0).
+  apply Nplus_assoc.
+  rewrite <- H.
+  apply Nplus_assoc.
+  assert (
+    Npos p~1 + (2) = Npos p~1 + 1 + 1
+    ).
+  assert (2 = 1 + 1).
+  reflexivity.
+  rewrite H.
+  clear H.
+  apply Nplus_assoc.
+  rewrite <- H.
+  apply Nplus_assoc.
+  Unfocus.
+  case (realsize l2).
+  Focus.
+  assert (2 + 1 = 2 + 1 + 0).
+  reflexivity.
+  rewrite <- H.
+  apply Nplus_assoc.
+  Unfocus.
+  clear p.
+  intro p.
+  case p.
+  clear p.
+  intro p.
+  Focus.
+  assert ((Npos (Psucc p)~0 + realsize r) = 1 + Npos p~1 + realsize r).
+  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
+  reflexivity.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  assert (
+   2 + (1 + Npos p~1) = 2 + 1 + Npos p~1
+   ).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  Unfocus.
+  clear p.
+  intro p.
+  Focus.
+  assert (Npos p~1 = 1 + Npos p~0).
+  reflexivity.
+  rewrite H.
+  assert (
+    2 + (1 + Npos p~0) = 2 + 1 + Npos p~0).
+  apply Nplus_assoc.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  Unfocus.
+  assert (
+   (2 + realsize r) = 1 + 1 + realsize r
+   ).
+  reflexivity.
+  rewrite H.
+  assert (
+       2 + (1 + 1) = 2 + 1 + 1
+       ).
+  reflexivity.
+  rewrite <- H0.
+  apply Nplus_assoc.
+  rewrite H.
+  assert (
+    realsize l1 + 1 + realsize l2  =
+    size l1 + (1 + size l2)
+    ).
+  assert (
+    realsize l1 + 1 + realsize l2 =
+    realsize (Bin s k0 a0 l1 l2)
+    ).
+  simpl.
+  case (realsize l1).
+  simpl.
+  reflexivity.
+  intro p.
+  case p.
+  clear p.
+  intro p.
+  reflexivity.
+  clear p.
+  intro p.
+  reflexivity.
+  reflexivity.
+  rewrite H0.
+  clear H0.
+  clear one H.
+  assert (
+       realsize (Bin s k0 a0 l1 l2) = 1 + realsize l1 + realsize l2
+       ).
+  simpl.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (realsize l1 = size l1).
+  assert (Is_true (validsize l1)).
+(*
+  s : Size
+  k0 : k
+  a0 : a
+  l1 : Map
+  l2 : Map
+  three : Is_true (validsize_rec (Bin s k0 a0 l1 l2))
+  ============================
+   Is_true (validsize l1)
+*)
   
-*)  
   
   (* this is wrong: apply validsize_bin. *)
   
