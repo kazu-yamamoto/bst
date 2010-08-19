@@ -1,7 +1,7 @@
 # Yet another binary search tree
 
 Since array and hash is not friendly to purely functional programming,
-binary search tree is an important data structure in Haskell.  Both
+binary search tree is an important data structure in Haskell. Both
 Data.Set and Data.Map is the binary search tree based on Adams's
 technital report.
 
@@ -28,10 +28,12 @@ tree, I'm implementing this based on Roura's paper:
 
 	http://www.brics.dk/BRICS/ALCOM-FT/TR/ALCOMFT-TR-01-167.html
 
+This is now called Data.LogMap.
+
 # Tests with HUnit and QuickCheck
 
 You can run tests:
 
 	% cd test
-	% runghc -i.. Test.hs
+	% runghc -i.. TestLogMap.hs
 	% runghc -i.. TestMap.hs --maximum-generated-tests=10000 -t difference
