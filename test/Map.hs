@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 
-module Test where
+module Map where
 
-import Prelude hiding (lookup,filter,null)
-import Data.BST.Internal
+import Prelude hiding (lookup,map,filter,null)
+import Data.Map.Internal
 import Test.Framework (defaultMain, testGroup, Test)
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
@@ -20,7 +20,7 @@ tests = [ testGroup "Test Case" [
              , testProperty "insert"                    prop_insert
              , testProperty "insert then lookup"        prop_lookup
              , testProperty "insert then delete"        prop_insertDelete
---             , testProperty "insert then delete2"       prop_insertDelete2
+             , testProperty "insert then delete2"       prop_insertDelete2
              , testProperty "delete non member"         prop_deleteNonMember
              , testProperty "deleteMin"                 prop_deleteMin
              ]
@@ -57,10 +57,8 @@ prop_lookup k t = lookup k (insert k () t) /= Nothing
 prop_insertDelete :: Int -> Map Int () -> Bool
 prop_insertDelete k t = valid $ delete k (insert k () t)
 
-{-
 prop_insertDelete2 :: Int -> Map Int () -> Property
 prop_insertDelete2 k t = (lookup k t == Nothing) ==> (delete k (insert k () t) == t)
--}
 
 prop_deleteNonMember :: Int -> Map Int () -> Property
 prop_deleteNonMember k t = (lookup k t == Nothing) ==> (delete k t == t)

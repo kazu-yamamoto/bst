@@ -1,14 +1,18 @@
 module Data.BST.Internal where
 
+import Prelude hiding (lookup)
 import Data.Bits ((.&.))
 
 type Size    = Int
 data Map k a = Tip
              | Bin !Size !k a !(Map k a) !(Map k a)
-             deriving Eq
+             deriving (Eq,Show)
+--             deriving Eq
 
+{-
 instance (Show k, Show a) => Show (Map k a) where
     show = showTree
+-}
 
 ----------------------------------------------------------------
 
@@ -42,21 +46,59 @@ singleton k x = Bin 1 k x Tip Tip
 insert :: Ord k => k -> a -> Map k a -> Map k a
 insert kx x Tip = singleton kx x
 insert kx x (Bin _ ky y l r) = case compare kx ky of
-    GT -> balanceGT ky y l (insert kx x r) 
-    LT -> balanceLT ky y (insert kx x l) r
+    GT -> balanceL ky y l (insert kx x r)
+    LT -> balanceR ky y (insert kx x l) r
     EQ -> bin kx x l r
 
 ----------------------------------------------------------------
 
-balanceGT :: k -> a -> Map k a -> Map k a -> Map k a
-balanceGT k x l r
+balanceL :: k -> a -> Map k a -> Map k a -> Map k a
+balanceL k x l r
   | isBalanced l r = bin k x l r
   | otherwise      = rotateL k x l r
 
-balanceLT :: k -> a -> Map k a -> Map k a -> Map k a
-balanceLT k x l r
+balanceR :: k -> a -> Map k a -> Map k a -> Map k a
+balanceR k x l r
   | isBalanced r l = bin k x l r
   | otherwise      = rotateR k x l r
+
+----------------------------------------------------------------
+
+delete :: Ord k => k -> Map k a -> Map k a
+delete _ Tip                 = Tip
+delete k n@(Bin _ kx _ Tip Tip)
+  | kx == k    = Tip
+  | otherwise  = n
+delete k (Bin _ kx x l r)    = case compare k kx of
+    GT -> balanceR kx x l (delete k r)
+    LT -> balanceL kx x (delete k l) r
+    EQ -> glue l r
+
+glue :: Map k a -> Map k a -> Map k a
+glue Tip r = r
+glue l Tip = l
+glue l r
+  | size l > size r = let ((km,m),l') = deleteFindMax l
+                      in balanceL km m l' r
+  | otherwise       = let ((km,m),r') = deleteFindMin r
+                      in balanceR km m l r'
+
+deleteFindMax :: Map k a -> ((k,a),Map k a)
+deleteFindMax (Bin _ k x l Tip) = ((k,x),l)
+deleteFindMax (Bin _ k x l r)   = let (km,r') = deleteFindMax r
+                                  in (km,balanceR k x l r')
+deleteFindMax Tip               = (error "Map.deleteFindMax: can not return the maximal element of an empty map", Tip)
+
+deleteFindMin :: Map k a -> ((k,a),Map k a)
+deleteFindMin (Bin _ k x Tip r) = ((k,x),r)
+deleteFindMin (Bin _ k x l r)   = let (km,l') = deleteFindMin l
+                                  in (km,balanceL k x l' r)
+deleteFindMin Tip               = (error "Map.deleteFindMin: can not return the minimal element of an empty map", Tip)
+
+deleteMin :: Map k a -> Map k a
+deleteMin (Bin _ _  _ Tip r)  = r
+deleteMin (Bin _ kx x l r)    = balanceL kx x (deleteMin l) r
+deleteMin Tip                 = Tip
 
 ----------------------------------------------------------------
 -- rotate
@@ -89,6 +131,29 @@ doubleL _ _ _ _ = error "doubleL"
 doubleR :: a -> b -> Map a b -> Map a b -> Map a b
 doubleR k1 x1 (Bin _ k2 x2 t1 (Bin _ k3 x3 t2 t3)) t4 = bin k3 x3 (bin k2 x2 t1 t2) (bin k1 x1 t3 t4)
 doubleR _ _ _ _ = error "doubleR"
+
+----------------------------------------------------------------
+
+lookup :: Ord k => k -> Map k a -> Maybe a
+lookup _ Tip              = Nothing
+lookup k (Bin _ kx x l r) = case compare k kx of
+    LT -> lookup k l
+    GT -> lookup k r
+    EQ -> Just x
+
+----------------------------------------------------------------
+
+fromList :: Ord k => [(k,a)] -> Map k a
+fromList xs
+  = foldlStrict ins empty xs
+  where
+    ins t (k,x) = insert k x t
+
+foldlStrict :: (a -> b -> a) -> a -> [b] -> a
+foldlStrict f z xs
+  = case xs of
+      []     -> z
+      (x:xx) -> let z' = f z x in seq z' (foldlStrict f z' xx)
 
 ----------------------------------------------------------------
 
