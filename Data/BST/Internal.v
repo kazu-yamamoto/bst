@@ -583,16 +583,7 @@ Lemma validsize_singleR:
   simpl.
   case (realsize l1).
   case (realsize l2).
-  assert (1 + realsize r = 1 + 0 + realsize r).
-  simpl.
-  reflexivity.
-  rewrite H.
-  assert (1 + 1 + 0 = 1 + (1 + 0)).
-  simpl.
-  reflexivity.
-  rewrite H0.
-  clear H H0.
-  apply BinNat.Nplus_assoc.
+  ring.
   intro p.
   case p.
   clear p.
@@ -604,10 +595,7 @@ Lemma validsize_singleR:
   rewrite H.
   reflexivity.
   rewrite H.
-  assert (1 + (1 + Npos p~1) = 1 + 1 + Npos p~1).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
+  ring.
   clear p.
   intro p.
   clear one x kx.
@@ -618,32 +606,14 @@ Lemma validsize_singleR:
   rewrite H.
   reflexivity.
   rewrite H.
-  assert (1 + (1 + Npos p~0) = 1 + 1 + Npos p~0).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
-  assert ((2 + realsize r) = 1 + 1 + realsize r).
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (1 + (1 + 1) = 1 + 1 + 1).
-  apply Nplus_assoc.
-  rewrite <- H.
-  apply Nplus_assoc.
+  ring.
+  ring.
   intro p.
   case p.
   case (realsize l2).
   clear p.
   intro p.
-  assert ((1 + realsize r) = 1 + 0 + realsize r).
-  simpl.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (Npos (Psucc p)~0 + (1 + 0) = Npos (Psucc p)~0 + 1 + 0).
-  apply Nplus_assoc.
-  rewrite <- H.
-  apply Nplus_assoc.
+  ring.
   clear p.
   intros p q.
   case p.
@@ -652,11 +622,7 @@ Lemma validsize_singleR:
   assert (Npos (Psucc p)~0 = 1 + Npos p~1).
   reflexivity.
   rewrite H.
-  assert (Npos (Psucc q)~0 + (1 + Npos p~1) =
-   Npos (Psucc q)~0 + 1 + Npos p~1).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
+  ring.
   clear p.
   intro p.
   clear kx.
@@ -669,38 +635,12 @@ Lemma validsize_singleR:
   rewrite H.
   reflexivity.
   rewrite H.
-  assert (Npos (Psucc q)~0 + (1 + Npos p~0) =
-   Npos (Psucc q)~0 + 1 + Npos p~0 ).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
-  assert(
-   (2 + realsize r) =
-   1 + 1 + realsize r).
-  reflexivity.
-  rewrite H.
-  assert (
-    Npos (Psucc q)~0 + (1 + 1) =
-    Npos (Psucc q)~0 + 1 + 1
-  ).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  clear H.
-  apply Nplus_assoc.
+  ring.
+  ring.
   clear p.
   intro p.
   case (realsize l2).
-  Focus.
-  assert ((1 + realsize r) = 1 + 0 + realsize r).
-  reflexivity.
-  rewrite H.
-  assert (
-       Npos p~1 + (1 + 0) = Npos p~1 + 1 + 0
-       ).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
-  Unfocus.
+  ring.
   Focus.
   intro q.
   case q.
@@ -717,13 +657,7 @@ Lemma validsize_singleR:
   reflexivity.
   rewrite H.
   clear H.
-  assert (
-    Npos p~1 + (1 + Npos q~1) =
-    Npos p~1 + 1 + Npos q~1).
-  apply Nplus_assoc.
-  rewrite <- H.
-  clear H.
-  apply Nplus_assoc.
+  ring.
   clear q.
   intro q.
   assert 
@@ -731,30 +665,11 @@ Lemma validsize_singleR:
   reflexivity.
   rewrite H.
   clear H.
-  assert (
-   Npos p~1 + (1 + Npos q~0) =
-   Npos p~1 + 1 + Npos q~0).
-  apply Nplus_assoc.
-  rewrite <- H.
-  apply Nplus_assoc.
-  assert (
-    Npos p~1 + (2) = Npos p~1 + 1 + 1
-    ).
-  assert (2 = 1 + 1).
-  reflexivity.
-  rewrite H.
-  clear H.
-  apply Nplus_assoc.
-  rewrite <- H.
-  apply Nplus_assoc.
+  ring.
+  ring.
   Unfocus.
   case (realsize l2).
-  Focus.
-  assert (2 + 1 = 2 + 1 + 0).
-  reflexivity.
-  rewrite <- H.
-  apply Nplus_assoc.
-  Unfocus.
+  ring.
   clear p.
   intro p.
   case p.
@@ -765,14 +680,9 @@ Lemma validsize_singleR:
   assert (Npos (Psucc p)~0 = 1 + Npos p~1).
   reflexivity.
   rewrite H.
-  reflexivity.
+  ring.
   rewrite H.
-  assert (
-   2 + (1 + Npos p~1) = 2 + 1 + Npos p~1
-   ).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
+  ring.
   Unfocus.
   clear p.
   intro p.
@@ -780,23 +690,14 @@ Lemma validsize_singleR:
   assert (Npos p~1 = 1 + Npos p~0).
   reflexivity.
   rewrite H.
-  assert (
-    2 + (1 + Npos p~0) = 2 + 1 + Npos p~0).
-  apply Nplus_assoc.
-  rewrite <- H0.
-  apply Nplus_assoc.
+  ring.
   Unfocus.
   assert (
    (2 + realsize r) = 1 + 1 + realsize r
    ).
   reflexivity.
   rewrite H.
-  assert (
-       2 + (1 + 1) = 2 + 1 + 1
-       ).
-  reflexivity.
-  rewrite <- H0.
-  apply Nplus_assoc.
+  ring.
   rewrite H.
   assert (
     realsize l1 + 1 + realsize l2  =
@@ -808,8 +709,7 @@ Lemma validsize_singleR:
     ).
   simpl.
   case (realsize l1).
-  simpl.
-  reflexivity.
+  ring.
   intro p.
   case p.
   clear p.
@@ -851,17 +751,7 @@ Lemma validsize_singleR:
   apply H.
   rewrite H.
   clear three H.
-  assert (
-       (1 + size l1) = size l1 + 1).
-  apply Nplus_comm.
-  rewrite H.
-  clear H.
-  assert (
-    size l1 + (1 + size l2) = size l1 + 1 + size l2
-    ).
-  apply Nplus_assoc.
-  rewrite H.
-  reflexivity.
+  ring.
   assert
     (realsize l1 + 1 + realsize l2 + realsize r =
       size l1 + (1 + size l2 + realsize r)).
@@ -877,63 +767,19 @@ Lemma validsize_singleR:
   clear three one.
   clear x k0 a0.
   assert (
-    1 + realsize l1 =
-    realsize l1 + 1 
-    ).
-  apply Nplus_comm.
+       1 + realsize l1 + 1 + realsize l2 + realsize r =
+       realsize l1 + 1 + realsize l2 + realsize r + 1).
+  ring.
   rewrite H.
   clear H.
   assert (
-    realsize l1 + 1 + 1 + realsize l2 =
-    realsize l1 + 1 + realsize l2 + 1
-    ).
-  assert (
-    realsize l1 + 1 + 1 + realsize l2 = 
-    (realsize l1 + 1) + (1 + realsize l2)
-    ).
-  assert (
-    realsize l1 + 1 + 1 + realsize l2 = realsize l1 + (1 + 1 + realsize l2)
-    ).
-  rewrite <- Nplus_assoc.
-  rewrite <- Nplus_assoc.
-  rewrite <- Nplus_assoc.
-  reflexivity.
-  repeat rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (
-    realsize l1 + 1 + realsize l2 + 1    =
-    realsize l1 + 1 + (realsize l2 + 1)
-    ).
-  repeat rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (
-   (1 + realsize l2) = (realsize l2 + 1)
-   ).
-  apply Nplus_comm.
-  rewrite H.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (
-    realsize l1 + 1 + realsize l2 + 1 + realsize r =
-    realsize l1 + 1 + realsize l2 + realsize r + 1
-    ).
-  assert (
-    realsize l1 + 1 + realsize l2 + 1 + realsize r =
-    realsize l1 + 1 + realsize l2 + (1 + realsize r)
-    ).
-  repeat rewrite <- Nplus_assoc.
-  reflexivity.
-  rewrite H.
-  clear H.
+    1 + size l1 + (1 + size l2 + realsize r)
+    = 
+    size l1 + (1 + size l2 + realsize r) + 1).
   ring.
   rewrite H.
   rewrite H1.
-  ring.
+  reflexivity.
   Qed.
 
   
