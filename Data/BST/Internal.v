@@ -460,6 +460,79 @@ Lemma validsize_bin:
   exact H.
   Qed.
 
+Lemma validsize_rec_hereditary1:
+  forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
+    Is_true (validsize_rec (Bin s k0 a0 l1 l2)) ->
+    Is_true (validsize_rec l1).
+  intros s k0 a0 l1 l2.
+  simpl.
+  case (validsize_rec l1).
+  intro irr.
+  simpl.
+  auto.
+  generalize (
+   validsize (Bin s k0 a0 l1 l2)
+   ).
+  intro b.
+  generalize (
+    validsize_rec l2
+    ).
+  intro c.
+  compute.
+  case b.
+  auto.
+  auto.
+  Qed.
+  
+    
+Lemma validsize_rec_hereditary2:
+  forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
+    Is_true (validsize_rec (Bin s k0 a0 l1 l2)) ->
+    Is_true (validsize_rec l2).
+  intros s k0 a0 l1 l2.
+  simpl.
+  case (validsize_rec l2).
+  intro irr.
+  simpl.
+  auto.
+  generalize (
+   validsize (Bin s k0 a0 l1 l2)
+   ).
+  intro b.
+  generalize (
+    validsize_rec l1
+    ).
+  intro c.
+  compute.
+  case c.
+  case b.
+  auto.
+  auto.
+  case b.
+  auto. auto.
+  Qed.
+
+  
+Lemma validsize_rec_self:
+  forall (m: Map),
+    Is_true (validsize_rec m) ->
+    Is_true (validsize m).
+  intro m.
+  destruct m.
+  intro irr.
+  auto.
+  simpl.
+  generalize (validsize_rec m1) (validsize_rec m2).
+  intros b c.
+  generalize (validsize (Bin s k0 a0 m1 m2)).
+  intro d.
+  compute.
+  case d.
+  auto.
+  auto.
+  Qed.
+
+
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize_rec l) ->
@@ -757,16 +830,154 @@ Lemma validsize_singleR:
   clear H.
   assert (realsize l1 = size l1).
   assert (Is_true (validsize l1)).
-(*
-  s : Size
-  k0 : k
-  a0 : a
-  l1 : Map
-  l2 : Map
-  three : Is_true (validsize_rec (Bin s k0 a0 l1 l2))
-  ============================
-   Is_true (validsize l1)
-*)
+  apply validsize_rec_self.
+  apply validsize_rec_hereditary1 with s k0 a0 l2.
+  exact three.
+  clear three.
+  generalize H.
+  clear H.
+  compute [validsize].
+  apply Nequal_equal.
+  rewrite H.
+  clear H.
+  assert (realsize l2 = size l2).
+  assert (Is_true (validsize l2)).
+  apply validsize_rec_self.
+  apply validsize_rec_hereditary2 with s k0 a0 l1.
+  exact three.
+  clear three.
+  apply Nequal_equal.
+  apply H.
+  rewrite H.
+  clear three H.
+  assert (
+       (1 + size l1) = size l1 + 1).
+  apply Nplus_comm.
+  rewrite H.
+  clear H.
+  assert (
+    size l1 + (1 + size l2) = size l1 + 1 + size l2
+    ).
+  apply Nplus_assoc.
+  rewrite H.
+  reflexivity.
+  assert
+    (realsize l1 + 1 + realsize l2 + realsize r =
+      size l1 + (1 + size l2 + realsize r)).
+  rewrite H0.
+  clear H0.
+  assert (
+   size l1 + (1 + size l2 + realsize r) =
+       size l1 + (1 + size l2) + realsize r).
+  apply Nplus_assoc.
+  rewrite H0.
+  reflexivity.
+  clear H0 H.
+  clear three one.
+  clear x k0 a0.
+  assert (
+    1 + realsize l1 =
+    realsize l1 + 1 
+    ).
+  apply Nplus_comm.
+  rewrite H.
+  clear H.
+  assert (
+    realsize l1 + 1 + 1 + realsize l2 =
+    realsize l1 + 1 + realsize l2 + 1
+    ).
+  assert (
+    realsize l1 + 1 + 1 + realsize l2 = 
+    (realsize l1 + 1) + (1 + realsize l2)
+    ).
+  assert (
+    realsize l1 + 1 + 1 + realsize l2 = realsize l1 + (1 + 1 + realsize l2)
+    ).
+  rewrite <- Nplus_assoc.
+  rewrite <- Nplus_assoc.
+  rewrite <- Nplus_assoc.
+  reflexivity.
+  repeat rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+    realsize l1 + 1 + realsize l2 + 1    =
+    realsize l1 + 1 + (realsize l2 + 1)
+    ).
+  repeat rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+   (1 + realsize l2) = (realsize l2 + 1)
+   ).
+  apply Nplus_comm.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+    realsize l1 + 1 + realsize l2 + 1 + realsize r =
+    realsize l1 + 1 + realsize l2 + realsize r + 1
+    ).
+  assert (
+    realsize l1 + 1 + realsize l2 + 1 + realsize r =
+    realsize l1 + 1 + realsize l2 + (1 + realsize r)
+    ).
+  repeat rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+    realsize l1 + 1 + realsize l2 + realsize r + 1 =
+    realsize l1 + 1 + realsize l2 + (realsize r + 1)
+    ).
+  repeat rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (
+      (1 + realsize r) =
+      (realsize r + 1)
+  ).
+  apply Nplus_comm.
+  rewrite H.
+  reflexivity.
+  rewrite H.
+  rewrite H1.
+  clear H1.
+  clear H.
+  generalize (1 + size l2 + realsize r).
+  intro n.
+  assert (
+    size l1 + n + 1 = size l1 + 1 + n
+    ).
+  assert (
+    size l1 + n + 1 =
+    size l1 + (n + 1)
+    ).
+  rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert
+    (size l1 + 1 + n = size l1 + ( 1 + n )).
+  rewrite <- Nplus_assoc.
+  reflexivity.
+  rewrite H.
+  assert (n+1 = 1 + n).
+  apply Nplus_comm.
+  rewrite H0.
+  reflexivity.
+  rewrite H.
+  clear H.
+  assert (size l1 + 1 = 1 + size l1).
+  apply Nplus_comm.
+  rewrite H.
+  reflexivity.
+  Qed.
+
   
   
   (* this is wrong: apply validsize_bin. *)
