@@ -583,299 +583,89 @@ Lemma validsize_rec_expand:
   auto.
   Qed.
 
+Lemma validsize_rec_expand_prop:
+  forall (kx: k) (x: a) (l r:Map),
+    Is_true (validsize (bin kx x l r)) ->
+    Is_true (validsize_rec l) ->
+    Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (bin kx x l r)).
+intros kx x l r.
+rewrite validsize_rec_expand.
+generalize (validsize_rec l) (validsize_rec r) (validsize (bin kx x l r)).
+intros b c d.
+case b; case c; case d; auto.
+  Qed.
+
+Lemma realsize_bin:
+  forall (k0: k) (a0: a) (l r: Map),
+   realsize (bin k0 a0 l r) = 1 + realsize l + realsize r.
+  auto.
+  Qed.
+
+  Lemma size_bin:
+    forall (kx: k) (x: a) (l r: Map),
+      size (bin kx x l r) = 1 + size l + size r.
+    auto.
+    Qed.
+
+    Hint Rewrite realsize_bin size_bin: sbin.
+
+Lemma validsize_realsize_size:
+  forall (l: Map),
+    Is_true (validsize l) ->
+    realsize l = size l.
+  compute [validsize].
+  intro l.
+  apply Nequal_equal.
+  Qed.
+
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize_rec l) ->
     Is_true (validsize_rec r) ->
     Is_true (validsize_rec (singleR kx x l r)).
-  intros kx x l.
+  intros kx x l r.
   generalize kx x.
   clear kx x.
   destruct l.
-  intros kx x r.
+  intros kx x.
   intros lvalid rvalid.
   compute [singleR].
   compute [assert_false].
   apply validsize_rec_bin.
   exact lvalid.
   exact rvalid.
-  intros kx x r.
+  intros kx x.
   compute [singleR].
-  compute [validsize].
   intros one two.
-  assert (Is_true (validsize (bin k0 a0 l1 (bin kx x l2 r)))).
+  apply validsize_rec_expand_prop.
   apply equal_Nequal.
-  assert (Is_true (validsize (Bin s k0 a0 l1 l2))).
-  generalize one.
-  clear one.
-  compute [validsize_rec].
-  case (validsize (Bin s k0 a0 l1 l2)).
-  intro hoge.
-  simpl.
-  trivial.
-  simpl.
-  trivial.
-  rename one into three.
-  rename H into one.
-  apply Nequal_equal in one.
-  rename two into four.
-  assert (Is_true (validsize r)) as two.
+  autorewrite with sbin.
+  repeat rewrite validsize_realsize_size.
+  reflexivity.
   apply validsize_rec_self.
   assumption.
-  apply Nequal_equal in two.
-  assert (size (bin k0 a0 l1 (bin kx x l2 r)) = 1 + size l1 +
-    (1 + size l2 + size r)).
-  compute [size].
-  reflexivity.
-  rewrite H.
-  clear H.
-  rewrite <- two.
-  clear two.
-  assert (realsize (bin k0 a0 l1 (bin kx x l2 r)) =
-    1 + realsize l1 + 1 + realsize l2 + realsize r).
-  compute [bin].
-  simpl.
-  case (realsize l1).
-  case (realsize l2).
-  ring.
-  intro p.
-  case p.
-  clear p.
-  intro p.
-  assert ((Npos (Psucc p)~0 + realsize r) = 1 + Npos p~1 + realsize r).
-  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
-  simpl.
-  reflexivity.
-  rewrite H.
-  reflexivity.
-  rewrite H.
-  ring.
-  clear p.
-  intro p.
-  clear one x kx.
-  assert ((Npos p~1 + realsize r) = 1 + Npos p~0 + realsize r).
-  assert (Npos p~1 = 1 + Npos p~0).
-  simpl.
-  reflexivity.
-  rewrite H.
-  reflexivity.
-  rewrite H.
-  ring.
-  ring.
-  intro p.
-  case p.
-  case (realsize l2).
-  clear p.
-  intro p.
-  ring.
-  clear p.
-  intros p q.
-  case p.
-  clear p.
-  intro p.
-  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
-  reflexivity.
-  rewrite H.
-  ring.
-  clear p.
-  intro p.
-  clear kx.
-  clear x.
-  clear one.
-  assert ((Npos p~1 + realsize r) =
-    1 + Npos p~0 + realsize r).
-  assert (Npos p~1 = 1 + Npos p~0).
-  reflexivity.
-  rewrite H.
-  reflexivity.
-  rewrite H.
-  ring.
-  ring.
-  clear p.
-  intro p.
-  case (realsize l2).
-  ring.
-  Focus.
-  intro q.
-  case q.
-  clear q.
-  intro q.
-  assert (
-     (Npos (Psucc q)~0 + realsize r) =
-     1 + Npos q~1 + realsize r).
-  assert (
-    Npos (Psucc q)~0 = 1 + Npos q~1
-    ).
-  reflexivity.
-  rewrite H.
-  reflexivity.
-  rewrite H.
-  clear H.
-  ring.
-  clear q.
-  intro q.
-  assert 
-    ((Npos q~1) = 1 + Npos q~0).
-  reflexivity.
-  rewrite H.
-  clear H.
-  ring.
-  ring.
-  Unfocus.
-  case (realsize l2).
-  ring.
-  clear p.
-  intro p.
-  case p.
-  clear p.
-  intro p.
-  Focus.
-  assert ((Npos (Psucc p)~0 + realsize r) = 1 + Npos p~1 + realsize r).
-  assert (Npos (Psucc p)~0 = 1 + Npos p~1).
-  reflexivity.
-  rewrite H.
-  ring.
-  rewrite H.
-  ring.
-  Unfocus.
-  clear p.
-  intro p.
-  Focus.
-  assert (Npos p~1 = 1 + Npos p~0).
-  reflexivity.
-  rewrite H.
-  ring.
-  Unfocus.
-  assert (
-   (2 + realsize r) = 1 + 1 + realsize r
-   ).
-  reflexivity.
-  rewrite H.
-  ring.
-  rewrite H.
-  assert (
-    realsize l1 + 1 + realsize l2  =
-    size l1 + (1 + size l2)
-    ).
-  assert (
-    realsize l1 + 1 + realsize l2 =
-    realsize (Bin s k0 a0 l1 l2)
-    ).
-  simpl.
-  case (realsize l1).
-  ring.
-  intro p.
-  case p.
-  clear p.
-  intro p.
-  reflexivity.
-  clear p.
-  intro p.
-  reflexivity.
-  reflexivity.
-  rewrite H0.
-  clear H0.
-  clear one H.
-  assert (
-       realsize (Bin s k0 a0 l1 l2) = 1 + realsize l1 + realsize l2
-       ).
-  simpl.
-  reflexivity.
-  rewrite H.
-  clear H.
-  assert (realsize l1 = size l1).
-  assert (Is_true (validsize l1)).
   apply validsize_rec_self.
-  apply validsize_rec_hereditary1 with s k0 a0 l2.
-  exact three.
-  clear three.
-  generalize H.
-  clear H.
-  compute [validsize].
-  apply Nequal_equal.
-  rewrite H.
-  clear H.
-  assert (realsize l2 = size l2).
-  assert (Is_true (validsize l2)).
+  eapply validsize_rec_hereditary2.
+  apply one.
+  apply validsize_rec_self;
+  eapply validsize_rec_hereditary1;
+  apply one.
+  eapply validsize_rec_hereditary1;
+  apply one.
+  apply validsize_rec_expand_prop.
+  apply equal_Nequal.
+  autorewrite with sbin.
+  repeat rewrite validsize_realsize_size.
+  reflexivity.
   apply validsize_rec_self.
-  apply validsize_rec_hereditary2 with s k0 a0 l1.
-  exact three.
-  clear three.
-  apply Nequal_equal.
-  apply H.
-  rewrite H.
-  clear three H.
-  ring.
-  assert
-    (realsize l1 + 1 + realsize l2 + realsize r =
-      size l1 + (1 + size l2 + realsize r)).
-  rewrite H0.
-  clear H0.
-  assert (
-   size l1 + (1 + size l2 + realsize r) =
-       size l1 + (1 + size l2) + realsize r).
-  apply Nplus_assoc.
-  rewrite H0.
-  reflexivity.
-  clear H0 H.
-  clear three one.
-  clear x k0 a0.
-  assert (
-       1 + realsize l1 + 1 + realsize l2 + realsize r =
-       realsize l1 + 1 + realsize l2 + realsize r + 1).
-  ring.
-  rewrite H.
-  clear H.
-  assert (
-    1 + size l1 + (1 + size l2 + realsize r)
-    = 
-    size l1 + (1 + size l2 + realsize r) + 1).
-  ring.
-  rewrite H.
-  rewrite H1.
-  reflexivity.
-  assert (Is_true (validsize_rec l1)).
-eapply validsize_rec_hereditary1 .
-apply one.
-assert (Is_true (validsize_rec (bin kx x l2 r))).
-assert (Is_true (validsize_rec l2)).
-eapply validsize_rec_hereditary2.
-apply one.
-assert (Is_true (validsize (bin kx x l2 r))).
-compute [validsize].
-apply equal_Nequal.
-assert (realsize (bin kx x l2 r) = 1 + realsize l2 + realsize r) as H2.
-auto.
-rewrite H2.
-clear H2.
-assert (size (bin kx x l2 r) = 1 + size l2 + size r) as sequal.
-auto.
-rewrite sequal.
-clear sequal.
-assert (realsize l2 = size l2).
-apply Nequal_equal.
-apply validsize_rec_self.
-assumption.
-rewrite H2.
-assert (realsize r = size r).
-apply Nequal_equal.
-apply validsize_rec_self.
-assumption.
-rewrite H3.
-reflexivity.
-rewrite validsize_rec_expand.
-generalize two H1 H2.
-generalize (validsize (bin kx x l2 r)) (validsize_rec l2)
-  (validsize_rec r).
-intros b c d.
-case b; case c; case d; auto.
-rewrite validsize_rec_expand.
-generalize H H0 H1.
-generalize (validsize_rec l1).
-generalize (validsize_rec (bin kx x l2 r)).
-generalize (validsize (bin k0 a0 l1 (bin kx x l2 r))).
-intros b c d.
-case b; case c; case d; auto.
+  assumption.
+  apply validsize_rec_self.
+  eapply validsize_rec_hereditary2.
+  apply one.
+  eapply validsize_rec_hereditary2.
+  apply one.
+  assumption.
 Qed.
 
 
