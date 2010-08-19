@@ -434,8 +434,6 @@ Lemma equal_Nequal:
   Qed.
   
 
-
-
 Lemma validsize_bin:
   forall (kx : k) (x : a) (l r : Map),
     Is_true (validsize l) -> Is_true (validsize r) ->
@@ -486,6 +484,35 @@ Lemma validsize_rec_hereditary1:
   auto.
   Qed.
   
+Lemma balanced_hereditary1:
+  forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
+    Is_true (balanced (Bin s k0 a0 l1 l2)) ->
+    Is_true (balanced l1).
+  intros s k0 a0 l1 l2.
+  simpl.
+  case (balanced l1).
+  intro irr.
+  simpl.
+  auto.
+  generalize (isBalanced l1 l2) (isBalanced l2 l1) (balanced l2).
+  intros b c d.
+  case b; case c; case d; auto.
+  Qed.
+    
+Lemma balanced_hereditary2:
+  forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
+    Is_true (balanced (Bin s k0 a0 l1 l2)) ->
+    Is_true (balanced l2).
+  intros s k0 a0 l1 l2.
+  simpl.
+  case (balanced l2).
+  intro irr.
+  simpl.
+  auto.
+  generalize (isBalanced l1 l2) (isBalanced l2 l1) (balanced l1).
+  intros b c d.
+  case b; case c; case d; auto.
+  Qed.
     
 Lemma validsize_rec_hereditary2:
   forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
