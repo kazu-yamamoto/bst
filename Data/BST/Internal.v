@@ -461,6 +461,7 @@ Lemma validsize_bin:
   exact H.
   Qed.
 
+
 Lemma validsize_rec_hereditary1:
   forall (s: Size) (k0: k) (a0: a) (l1 l2: Map),
     Is_true (validsize_rec (Bin s k0 a0 l1 l2)) ->
@@ -533,12 +534,60 @@ Lemma validsize_rec_self:
   auto.
   Qed.
 
+Lemma validsize_rec_bin:
+  forall (kx : k) (x : a) (l r : Map),
+    Is_true (validsize_rec l) -> Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (bin kx x l r)).
+  intros kx x l r lval rval.
+  assert (
+    validsize_rec (bin kx x l r) =
+    validsize (bin kx x l r) &&
+    validsize_rec l && validsize_rec r).
+  auto.
+  rewrite H.
+  clear H.
+  generalize lval rval.
+  case (validsize_rec l).
+  intro irr.
+  clear irr.
+  case (validsize_rec r).
+  intro irr.
+  clear irr.
+  assert (
+    Is_true (validsize (bin kx x l r) && true && true) =
+    Is_true (validsize (bin kx x l r))).
+  case (validsize (bin kx x l r)).
+  auto.
+  auto.
+  rewrite H.
+  clear H.
+  apply validsize_bin.
+  apply validsize_rec_self.
+  exact lval.
+  apply validsize_rec_self.
+  exact rval.
+  intro f.
+  absurd (Is_true false).
+  auto.
+  exact f.
+  intro f.
+  absurd (Is_true false).
+  auto.
+  assumption.
+  Qed.
+
+Lemma validsize_rec_expand:
+  forall (kx: k) (x: a) (l r:Map),
+    (validsize_rec (bin kx x l r) = validsize (bin kx x l r) && validsize_rec l && validsize_rec r).
+  intros.
+  auto.
+  Qed.
 
 Lemma validsize_singleR:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize_rec l) ->
-    Is_true (validsize r) ->
-    Is_true (validsize (singleR kx x l r)).
+    Is_true (validsize_rec r) ->
+    Is_true (validsize_rec (singleR kx x l r)).
   intros kx x l.
   generalize kx x.
   clear kx x.
@@ -547,13 +596,14 @@ Lemma validsize_singleR:
   intros lvalid rvalid.
   compute [singleR].
   compute [assert_false].
-  apply validsize_bin.
+  apply validsize_rec_bin.
   exact lvalid.
   exact rvalid.
   intros kx x r.
   compute [singleR].
   compute [validsize].
   intros one two.
+  assert (Is_true (validsize (bin k0 a0 l1 (bin kx x l2 r)))).
   apply equal_Nequal.
   assert (Is_true (validsize (Bin s k0 a0 l1 l2))).
   generalize one.
@@ -568,6 +618,10 @@ Lemma validsize_singleR:
   rename one into three.
   rename H into one.
   apply Nequal_equal in one.
+  rename two into four.
+  assert (Is_true (validsize r)) as two.
+  apply validsize_rec_self.
+  assumption.
   apply Nequal_equal in two.
   assert (size (bin k0 a0 l1 (bin kx x l2 r)) = 1 + size l1 +
     (1 + size l2 + size r)).
@@ -780,14 +834,68 @@ Lemma validsize_singleR:
   rewrite H.
   rewrite H1.
   reflexivity.
-  Qed.
+  assert (Is_true (validsize_rec l1)).
+eapply validsize_rec_hereditary1 .
+apply one.
+assert (Is_true (validsize_rec (bin kx x l2 r))).
+assert (Is_true (validsize_rec l2)).
+eapply validsize_rec_hereditary2.
+apply one.
+assert (Is_true (validsize (bin kx x l2 r))).
+compute [validsize].
+apply equal_Nequal.
+assert (realsize (bin kx x l2 r) = 1 + realsize l2 + realsize r) as H2.
+auto.
+rewrite H2.
+clear H2.
+assert (size (bin kx x l2 r) = 1 + size l2 + size r) as sequal.
+auto.
+rewrite sequal.
+clear sequal.
+assert (realsize l2 = size l2).
+apply Nequal_equal.
+apply validsize_rec_self.
+assumption.
+rewrite H2.
+assert (realsize r = size r).
+apply Nequal_equal.
+apply validsize_rec_self.
+assumption.
+rewrite H3.
+reflexivity.
+rewrite validsize_rec_expand.
+generalize two H1 H2.
+generalize (validsize (bin kx x l2 r)) (validsize_rec l2)
+  (validsize_rec r).
+intros b c d.
+case b; case c; case d; auto.
+rewrite validsize_rec_expand.
+generalize H H0 H1.
+generalize (validsize_rec l1).
+generalize (validsize_rec (bin kx x l2 r)).
+generalize (validsize (bin k0 a0 l1 (bin kx x l2 r))).
+intros b c d.
+case b; case c; case d; auto.
+Qed.
+
+
+
+Lemma validsize_doubleR:
+  forall (t t4: Map)
+    (k1: k) (x1: a),
+    Is_true (validsize_rec t) ->
+    Is_true (validsize_rec t4) ->
+    Is_true (validsize_rec (doubleR k1 x1 t t4)).
+  
+Definition doubleR : k -> a -> Map -> Map -> Map :=
+  fun k1 x1 t t4 =>
+    match t with
+      | (Bin _ k2 x2 t1 (Bin _ k3 x3 t2 t3)) =>
+        bin k3 x3 (bin k2 x2 t1 t2) (bin k1 x1 t3 t4)
+      | _ => assert_false k1 x1 t t4
+    end.
 
   
-  
-  (* this is wrong: apply validsize_bin. *)
-  
-  
-(* this is OK, but can we use thie? 
 Lemma validsize_balanceLT:
   forall (kx: k) (x: a) (l r: Map),
     Is_true (validsize l) ->
@@ -844,7 +952,7 @@ Lemma validsize_balanceLT:
   reflexivity.
   reflexivity.
   rewrite H0.
-  auto. *)
+  auto. 
   (* Is_true (validsize (rotateR kx x l r)) *)
   
 
