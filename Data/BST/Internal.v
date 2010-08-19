@@ -513,7 +513,6 @@ Lemma validsize_rec_hereditary2:
   case b.
   auto. auto.
   Qed.
-
   
 Lemma validsize_rec_self:
   forall (m: Map),
