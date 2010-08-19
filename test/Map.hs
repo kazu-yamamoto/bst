@@ -20,7 +20,7 @@ tests = [ testGroup "Test Case" [
              , testProperty "insert"                    prop_insert
              , testProperty "insert then lookup"        prop_lookup
              , testProperty "insert then delete"        prop_insertDelete
-             , testProperty "insert then deelete"       prop_insertDelete2
+             , testProperty "insert then delete2"       prop_insertDelete2
              , testProperty "delete non member"         prop_deleteNonMember
              , testProperty "deleteMin"                 prop_deleteMin
              ]
