@@ -6,10 +6,13 @@ import Data.Bits ((.&.))
 type Size    = Int
 data Map k a = Tip
              | Bin !Size !k a !(Map k a) !(Map k a)
-             deriving Eq
+             deriving (Eq,Show)
+--             deriving Eq
 
+{-
 instance (Show k, Show a) => Show (Map k a) where
     show = showTree
+-}
 
 ----------------------------------------------------------------
 
@@ -92,6 +95,11 @@ deleteFindMin (Bin _ k x l r)   = let (km,l') = deleteFindMin l
                                   in (km,balanceL k x l' r)
 deleteFindMin Tip               = (error "Map.deleteFindMin: can not return the minimal element of an empty map", Tip)
 
+deleteMin :: Map k a -> Map k a
+deleteMin (Bin _ _  _ Tip r)  = r
+deleteMin (Bin _ kx x l r)    = balanceL kx x (deleteMin l) r
+deleteMin Tip                 = Tip
+
 ----------------------------------------------------------------
 -- rotate
 rotateL :: a -> b -> Map a b -> Map a b -> Map a b
@@ -132,6 +140,20 @@ lookup k (Bin _ kx x l r) = case compare k kx of
     LT -> lookup k l
     GT -> lookup k r
     EQ -> Just x
+
+----------------------------------------------------------------
+
+fromList :: Ord k => [(k,a)] -> Map k a
+fromList xs
+  = foldlStrict ins empty xs
+  where
+    ins t (k,x) = insert k x t
+
+foldlStrict :: (a -> b -> a) -> a -> [b] -> a
+foldlStrict f z xs
+  = case xs of
+      []     -> z
+      (x:xx) -> let z' = f z x in seq z' (foldlStrict f z' xx)
 
 ----------------------------------------------------------------
 
