@@ -708,6 +708,10 @@ prop_deleteMax t = valid $ deleteMax $ deleteMax t
 
 ----------------------------------------------------------------
 
+prop_split :: Int -> UMap -> Property
+prop_split k t = (lookup k t /= Nothing) ==> let (r,l) = split k t
+                                             in (valid r, valid l) == (True, True)
+
 prop_join :: Int -> UMap -> Bool
 prop_join k t = let (l,r) = split k t
                 in valid (join k () l r)
@@ -720,6 +724,11 @@ prop_merge k t = let (l,r) = split k t
 
 prop_union :: UMap -> UMap -> Bool
 prop_union t1 t2 = valid (union t1 t2)
+
+prop_unionModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
+prop_unionModel xs ys
+  = sort (keys (union (fromList xs) (fromList ys)))
+    == sort (nub (P.map fst xs ++ P.map fst ys))
 
 prop_unionSingleton :: IMap -> Int -> Int -> Bool
 prop_unionSingleton t k x = union (singleton k x) t == insert k x t
@@ -744,7 +753,7 @@ prop_difference t1 t2 = valid (difference t1 t2)
 prop_differenceModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
 prop_differenceModel xs ys
   = sort (keys (difference (fromListWith (+) xs) (fromListWith (+) ys)))
-    == sort ((L.\\) (nub (P.map fst xs))  (nub (P.map fst ys)))
+    == sort ((L.\\) (nub (P.map fst xs)) (nub (P.map fst ys)))
 
 prop_intersection :: IMap -> IMap -> Bool
 prop_intersection t1 t2 = valid (intersection t1 t2)
