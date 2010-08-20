@@ -18,6 +18,15 @@ import Test.QuickCheck
 
 ----------------------------------------------------------------
 
+instance (Ord k,Arbitrary k,Arbitrary a) => Arbitrary (Map k a) where
+  arbitrary = fromList <$> (zip <$> arbitrary <*> arbitrary)
+
+type UMap = Map Int ()
+type IMap = Map Int Int
+type SMap = Map Int String
+
+----------------------------------------------------------------
+
 tests :: [Test]
 tests = [ testGroup "Test Case" [
                testCase "ticket4242" test_ticket4242
@@ -668,15 +677,6 @@ test_valid = do
 
 ----------------------------------------------------------------
 -- QuickCheck
-----------------------------------------------------------------
-
-instance (Ord k,Arbitrary k,Arbitrary a) => Arbitrary (Map k a) where
-  arbitrary = fromList <$> (zip <$> arbitrary <*> arbitrary)
-
-type UMap = Map Int ()
-type IMap = Map Int Int
-type SMap = Map Int String
-
 ----------------------------------------------------------------
 
 prop_fromList :: UMap -> Bool
