@@ -39,7 +39,18 @@ tests = [ testGroup "Test Case" [
              , testCase "updateWithKey" test_updateWithKey
              , testCase "updateLookupWithKey" test_updateLookupWithKey
              , testCase "alter" test_alter
-               {-
+             , testCase "union" test_union
+             , testCase "unionWith" test_unionWith
+             , testCase "unionWithKey" test_unionWithKey
+             , testCase "unions" test_unions
+             , testCase "unionsWith" test_unionsWith
+             , testCase "difference" test_difference
+             , testCase "differenceWith" test_differenceWith
+             , testCase "differenceWithKey" test_differenceWithKey
+             , testCase "intersection" test_intersection
+             , testCase "intersectionWith" test_intersectionWith
+             , testCase "intersectionWithKey" test_intersectionWithKey
+{-
              , testCase "" test_
              , testCase "" test_
              , testCase "" test_
@@ -229,6 +240,57 @@ test_alter = do
     f _ = Nothing
     g _ = Just "c"
 
+----------------------------------------------------------------
+-- Combine
+
+test_union :: Assertion
+test_union = union (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= fromList [(3, "b"), (5, "a"), (7, "C")]
+
+test_unionWith :: Assertion
+test_unionWith = unionWith (++) (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= fromList [(3, "b"), (5, "aA"), (7, "C")]
+
+test_unionWithKey :: Assertion
+test_unionWithKey = unionWithKey f (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= fromList [(3, "b"), (5, "5:a|A"), (7, "C")]
+  where
+    f key left_value right_value = (show key) ++ ":" ++ left_value ++ "|" ++ right_value
+
+test_unions :: Assertion
+test_unions = do
+    unions [(fromList [(5, "a"), (3, "b")]), (fromList [(5, "A"), (7, "C")]), (fromList [(5, "A3"), (3, "B3")])]
+        @?= fromList [(3, "b"), (5, "a"), (7, "C")]
+    unions [(fromList [(5, "A3"), (3, "B3")]), (fromList [(5, "A"), (7, "C")]), (fromList [(5, "a"), (3, "b")])]
+        @?= fromList [(3, "B3"), (5, "A3"), (7, "C")]
+
+test_unionsWith :: Assertion
+test_unionsWith = unionsWith (++) [(fromList [(5, "a"), (3, "b")]), (fromList [(5, "A"), (7, "C")]), (fromList [(5, "A3"), (3, "B3")])]
+     @?= fromList [(3, "bB3"), (5, "aAA3"), (7, "C")]
+
+test_difference :: Assertion
+test_difference = difference (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= singleton 3 "b"
+
+test_differenceWith :: Assertion
+test_differenceWith = differenceWith f (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (3, "B"), (7, "C")])
+     @?= singleton 3 "b:B"
+ where
+   f al ar = if al== "b" then Just (al ++ ":" ++ ar) else Nothing
+
+test_differenceWithKey :: Assertion
+test_differenceWithKey = differenceWithKey f (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (3, "B"), (10, "C")])
+     @?= singleton 3 "3:b|B"
+  where
+    f k al ar = if al == "b" then Just ((show k) ++ ":" ++ al ++ "|" ++ ar) else Nothing
+
+test_intersection :: Assertion
+test_intersection = intersection (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= singleton 5 "a"
+
+
+test_intersectionWith :: Assertion
+test_intersectionWith = intersectionWith (++) (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= singleton 5 "aA"
+
+test_intersectionWithKey :: Assertion
+test_intersectionWithKey = intersectionWithKey f (fromList [(5, "a"), (3, "b")]) (fromList [(5, "A"), (7, "C")]) @?= singleton 5 "5:a|A"
+  where
+    f k al ar = (show k) ++ ":" ++ al ++ "|" ++ ar
 
 ----------------------------------------------------------------
 -- QuickCheck
