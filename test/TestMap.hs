@@ -5,7 +5,9 @@ module TestMap where
 import Control.Applicative ((<$>),(<*>))
 import Data.List (nub,sort)
 import qualified Data.List as L ((\\),intersect)
+import qualified Data.Set
 import Data.Map.Internal
+import Data.Maybe (isJust,fromJust)
 import Prelude hiding (lookup,map,filter,null)
 import qualified Prelude as P (map)
 import Test.Framework (defaultMain, testGroup, Test)
@@ -50,11 +52,60 @@ tests = [ testGroup "Test Case" [
              , testCase "intersection" test_intersection
              , testCase "intersectionWith" test_intersectionWith
              , testCase "intersectionWithKey" test_intersectionWithKey
-{-
-             , testCase "" test_
-             , testCase "" test_
-             , testCase "" test_
--}
+             , testCase "map" test_map
+             , testCase "mapWithKey" test_mapWithKey
+             , testCase "mapAccum" test_mapAccum
+             , testCase "mapAccumWithKey" test_mapAccumWithKey
+             , testCase "mapKeys" test_mapKeys
+             , testCase "mapKeysWith" test_mapKeysWith
+             , testCase "mapKeysMonotonic" test_mapKeysMonotonic
+             , testCase "fold" test_fold
+             , testCase "foldWithKey" test_foldWithKey
+             , testCase "elems" test_elems
+             , testCase "keys" test_keys
+             , testCase "keysSet" test_keysSet
+             , testCase "associative" test_assocs
+             , testCase "toList" test_toList
+             , testCase "fromList" test_fromList
+             , testCase "fromListWith" test_fromListWith
+             , testCase "fromListWithKey" test_fromListWithKey
+             , testCase "toAscList" test_toAscList
+             , testCase "fromAscList" test_fromAscList
+             , testCase "fromAscListWith" test_fromAscListWith
+             , testCase "fromAscListWithKey" test_fromAscListWithKey
+             , testCase "fromDistinctAscList" test_fromDistinctAscList
+             , testCase "filter" test_filter
+             , testCase "filterWithKey" test_filteWithKey
+             , testCase "partition" test_partition
+             , testCase "partitionWithKey" test_partitionWithKey
+             , testCase "mapMaybe" test_mapMaybe
+             , testCase "mapMaybeWithKey" test_mapMaybeWithKey
+             , testCase "mapEither" test_mapEither
+             , testCase "mapEitherWithKey" test_mapEitherWithKey
+             , testCase "split" test_split
+             , testCase "splitLookup" test_splitLookup
+             , testCase "isSubmapOfBy" test_isSubmapOfBy
+             , testCase "isProperSubmapOfBy" test_isProperSubmapOfBy
+             , testCase "lookupIndex" test_lookupIndex
+             , testCase "findIndex" test_findIndex
+             , testCase "elemAt" test_elemAt
+             , testCase "updateAt" test_updateAt
+             , testCase "deleteAt" test_delete
+             , testCase "findMin" test_findMin
+             , testCase "findMax" test_findMax
+             , testCase "deleteMin" test_deleteMin
+             , testCase "deleteMax" test_deleteMax
+             , testCase "deleteFindMin" test_deleteFindMin
+             , testCase "deleteFindMax" test_deleteFindMax
+             , testCase "updateMin" test_updateMin
+             , testCase "updateMax" test_updateMax
+             , testCase "updateMinWithKey" test_updateMinWithKey
+             , testCase "updateMaxWithKey" test_updateMaxWithKey
+             , testCase "minView" test_minView
+             , testCase "maxView" test_maxView
+             , testCase "minViewWithKey" test_minViewWithKey
+             , testCase "maxViewWithKey" test_maxViewWithKey
+             , testCase "valid" test_valid
              ]
         , testGroup "Property Test" [
                testProperty "fromList"             prop_fromList
@@ -293,6 +344,329 @@ test_intersectionWithKey = intersectionWithKey f (fromList [(5, "a"), (3, "b")])
     f k al ar = (show k) ++ ":" ++ al ++ "|" ++ ar
 
 ----------------------------------------------------------------
+-- Traversal
+
+test_map :: Assertion
+test_map = map (++ "x") (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "bx"), (5, "ax")]
+
+test_mapWithKey :: Assertion
+test_mapWithKey = mapWithKey f (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "3:b"), (5, "5:a")]
+  where
+    f key x = (show key) ++ ":" ++ x
+
+test_mapAccum :: Assertion
+test_mapAccum = mapAccum f "Everything: " (fromList [(5,"a"), (3,"b")]) @?= ("Everything: ba", fromList [(3, "bX"), (5, "aX")])
+  where
+    f a b = (a ++ b, b ++ "X")
+
+test_mapAccumWithKey :: Assertion
+test_mapAccumWithKey = mapAccumWithKey f "Everything:" (fromList [(5,"a"), (3,"b")]) @?= ("Everything: 3-b 5-a", fromList [(3, "bX"), (5, "aX")])
+  where
+    f a k b = (a ++ " " ++ (show k) ++ "-" ++ b, b ++ "X")
+
+test_mapKeys :: Assertion
+test_mapKeys = do
+    mapKeys (+ 1) (fromList [(5,"a"), (3,"b")])                        @?= fromList [(4, "b"), (6, "a")]
+    mapKeys (\ _ -> 1) (fromList [(1,"b"), (2,"a"), (3,"d"), (4,"c")]) @?= singleton 1 "c"
+    mapKeys (\ _ -> 3) (fromList [(1,"b"), (2,"a"), (3,"d"), (4,"c")]) @?= singleton 3 "c"
+
+test_mapKeysWith :: Assertion
+test_mapKeysWith = do
+    mapKeysWith (++) (\ _ -> 1) (fromList [(1,"b"), (2,"a"), (3,"d"), (4,"c")]) @?= singleton 1 "cdab"
+    mapKeysWith (++) (\ _ -> 3) (fromList [(1,"b"), (2,"a"), (3,"d"), (4,"c")]) @?= singleton 3 "cdab"
+
+test_mapKeysMonotonic :: Assertion
+test_mapKeysMonotonic = do
+    mapKeysMonotonic (\ k -> k * 2) (fromList [(5,"a"), (3,"b")]) @?= fromList [(6, "b"), (10, "a")]
+    valid (mapKeysMonotonic (\ k -> k * 2) (fromList [(5,"a"), (3,"b")])) @?= True
+    valid (mapKeysMonotonic (\ _ -> 1)     (fromList [(5,"a"), (3,"b")])) @?= False
+
+test_fold :: Assertion
+test_fold = fold f 0 (fromList [(5,"a"), (3,"bbb")]) @?= 4
+  where
+    f a len = len + (length a)
+
+test_foldWithKey :: Assertion
+test_foldWithKey = foldWithKey f "Map: " (fromList [(5,"a"), (3,"b")]) @?= "Map: (5:a)(3:b)"
+  where
+    f k a result = result ++ "(" ++ (show k) ++ ":" ++ a ++ ")"
+
+----------------------------------------------------------------
+-- Conversion
+
+test_elems :: Assertion
+test_elems = do
+    elems (fromList [(5,"a"), (3,"b")]) @?= ["b","a"]
+    elems (empty :: UMap) @?= []
+
+test_keys :: Assertion
+test_keys = do
+    keys (fromList [(5,"a"), (3,"b")]) @?= [3,5]
+    keys (empty :: UMap) @?= []
+
+test_keysSet :: Assertion
+test_keysSet = do
+    keysSet (fromList [(5,"a"), (3,"b")]) @?= Data.Set.fromList [3,5]
+    keysSet (empty :: UMap) @?= Data.Set.empty
+
+test_assocs :: Assertion
+test_assocs = do
+    assocs (fromList [(5,"a"), (3,"b")]) @?= [(3,"b"), (5,"a")]
+    assocs (empty :: UMap) @?= []
+
+----------------------------------------------------------------
+-- Lists
+
+test_toList :: Assertion
+test_toList = do
+    toList (fromList [(5,"a"), (3,"b")]) @?= [(3,"b"), (5,"a")]
+    toList (empty :: SMap) @?= []
+
+test_fromList :: Assertion
+test_fromList = do
+    fromList [] @?= (empty :: SMap)
+    fromList [(5,"a"), (3,"b"), (5, "c")] @?= fromList [(5,"c"), (3,"b")]
+    fromList [(5,"c"), (3,"b"), (5, "a")] @?= fromList [(5,"a"), (3,"b")]
+
+test_fromListWith :: Assertion
+test_fromListWith = do
+    fromListWith (++) [(5,"a"), (5,"b"), (3,"b"), (3,"a"), (5,"a")] @?= fromList [(3, "ab"), (5, "aba")]
+    fromListWith (++) [] @?= (empty :: SMap)
+
+test_fromListWithKey :: Assertion
+test_fromListWithKey = do
+    fromListWithKey f [(5,"a"), (5,"b"), (3,"b"), (3,"a"), (5,"a")] @?= fromList [(3, "3ab"), (5, "5a5ba")]
+    fromListWithKey f [] @?= (empty :: SMap)
+  where
+    f k a1 a2 = (show k) ++ a1 ++ a2
+
+----------------------------------------------------------------
+-- Ordered lists
+
+test_toAscList :: Assertion
+test_toAscList = toAscList (fromList [(5,"a"), (3,"b")]) @?= [(3,"b"), (5,"a")]
+
+test_fromAscList :: Assertion
+test_fromAscList = do
+    fromAscList [(3,"b"), (5,"a")]          @?= fromList [(3, "b"), (5, "a")]
+    fromAscList [(3,"b"), (5,"a"), (5,"b")] @?= fromList [(3, "b"), (5, "b")]
+    valid (fromAscList [(3,"b"), (5,"a"), (5,"b")]) @?= True
+    valid (fromAscList [(5,"a"), (3,"b"), (5,"b")]) @?= False
+
+test_fromAscListWith :: Assertion
+test_fromAscListWith = do
+    fromAscListWith (++) [(3,"b"), (5,"a"), (5,"b")] @?= fromList [(3, "b"), (5, "ba")]
+    valid (fromAscListWith (++) [(3,"b"), (5,"a"), (5,"b")]) @?= True
+    valid (fromAscListWith (++) [(5,"a"), (3,"b"), (5,"b")]) @?= False
+
+test_fromAscListWithKey :: Assertion
+test_fromAscListWithKey = do
+    fromAscListWithKey f [(3,"b"), (5,"a"), (5,"b"), (5,"b")] @?= fromList [(3, "b"), (5, "5:b5:ba")]
+    valid (fromAscListWithKey f [(3,"b"), (5,"a"), (5,"b"), (5,"b")]) @?= True
+    valid (fromAscListWithKey f [(5,"a"), (3,"b"), (5,"b"), (5,"b")]) @?= False
+  where
+    f k a1 a2 = (show k) ++ ":" ++ a1 ++ a2
+
+test_fromDistinctAscList :: Assertion
+test_fromDistinctAscList = do
+    fromDistinctAscList [(3,"b"), (5,"a")] @?= fromList [(3, "b"), (5, "a")]
+    valid (fromDistinctAscList [(3,"b"), (5,"a")])          @?= True
+    valid (fromDistinctAscList [(3,"b"), (5,"a"), (5,"b")]) @?= False
+
+----------------------------------------------------------------
+-- Filter
+
+test_filter :: Assertion
+test_filter = do
+    filter (> "a") (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+    filter (> "x") (fromList [(5,"a"), (3,"b")]) @?= empty
+    filter (< "a") (fromList [(5,"a"), (3,"b")]) @?= empty
+
+test_filteWithKey :: Assertion
+test_filteWithKey = filterWithKey (\k _ -> k > 4) (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+
+test_partition :: Assertion
+test_partition = do
+    partition (> "a") (fromList [(5,"a"), (3,"b")]) @?= (singleton 3 "b", singleton 5 "a")
+    partition (< "x") (fromList [(5,"a"), (3,"b")]) @?= (fromList [(3, "b"), (5, "a")], empty)
+    partition (> "x") (fromList [(5,"a"), (3,"b")]) @?= (empty, fromList [(3, "b"), (5, "a")])
+
+test_partitionWithKey :: Assertion
+test_partitionWithKey = do
+    partitionWithKey (\ k _ -> k > 3) (fromList [(5,"a"), (3,"b")]) @?= (singleton 5 "a", singleton 3 "b")
+    partitionWithKey (\ k _ -> k < 7) (fromList [(5,"a"), (3,"b")]) @?= (fromList [(3, "b"), (5, "a")], empty)
+    partitionWithKey (\ k _ -> k > 7) (fromList [(5,"a"), (3,"b")]) @?= (empty, fromList [(3, "b"), (5, "a")])
+
+test_mapMaybe :: Assertion
+test_mapMaybe = mapMaybe f (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "new a"
+  where
+    f x = if x == "a" then Just "new a" else Nothing
+
+test_mapMaybeWithKey :: Assertion
+test_mapMaybeWithKey = mapMaybeWithKey f (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "key : 3"
+  where
+    f k _ = if k < 5 then Just ("key : " ++ (show k)) else Nothing
+
+test_mapEither :: Assertion
+test_mapEither = do
+    mapEither f (fromList [(5,"a"), (3,"b"), (1,"x"), (7,"z")])
+        @?= (fromList [(3,"b"), (5,"a")], fromList [(1,"x"), (7,"z")])
+    mapEither (\ a -> Right a) (fromList [(5,"a"), (3,"b"), (1,"x"), (7,"z")])
+        @?= ((empty :: SMap), fromList [(5,"a"), (3,"b"), (1,"x"), (7,"z")])
+ where
+   f a = if a < "c" then Left a else Right a
+
+test_mapEitherWithKey :: Assertion
+test_mapEitherWithKey = do
+    mapEitherWithKey f (fromList [(5,"a"), (3,"b"), (1,"x"), (7,"z")])
+     @?= (fromList [(1,2), (3,6)], fromList [(5,"aa"), (7,"zz")])
+    mapEitherWithKey (\_ a -> Right a) (fromList [(5,"a"), (3,"b"), (1,"x"), (7,"z")])
+     @?= ((empty :: SMap), fromList [(1,"x"), (3,"b"), (5,"a"), (7,"z")])
+  where
+    f k a = if k < 5 then Left (k * 2) else Right (a ++ a)
+
+test_split :: Assertion
+test_split = do
+    split 2 (fromList [(5,"a"), (3,"b")]) @?= (empty, fromList [(3,"b"), (5,"a")])
+    split 3 (fromList [(5,"a"), (3,"b")]) @?= (empty, singleton 5 "a")
+    split 4 (fromList [(5,"a"), (3,"b")]) @?= (singleton 3 "b", singleton 5 "a")
+    split 5 (fromList [(5,"a"), (3,"b")]) @?= (singleton 3 "b", empty)
+    split 6 (fromList [(5,"a"), (3,"b")]) @?= (fromList [(3,"b"), (5,"a")], empty)
+
+test_splitLookup :: Assertion
+test_splitLookup = do
+    splitLookup 2 (fromList [(5,"a"), (3,"b")]) @?= (empty, Nothing, fromList [(3,"b"), (5,"a")])
+    splitLookup 3 (fromList [(5,"a"), (3,"b")]) @?= (empty, Just "b", singleton 5 "a")
+    splitLookup 4 (fromList [(5,"a"), (3,"b")]) @?= (singleton 3 "b", Nothing, singleton 5 "a")
+    splitLookup 5 (fromList [(5,"a"), (3,"b")]) @?= (singleton 3 "b", Just "a", empty)
+    splitLookup 6 (fromList [(5,"a"), (3,"b")]) @?= (fromList [(3,"b"), (5,"a")], Nothing, empty)
+
+----------------------------------------------------------------
+-- Submap
+
+test_isSubmapOfBy :: Assertion
+test_isSubmapOfBy = do
+    isSubmapOfBy (==) (fromList [('a',1)]) (fromList [('a',1),('b',2)]) @?= True
+    isSubmapOfBy (<=) (fromList [('a',1)]) (fromList [('a',1),('b',2)]) @?= True
+    isSubmapOfBy (==) (fromList [('a',1),('b',2)]) (fromList [('a',1),('b',2)]) @?= True
+    isSubmapOfBy (==) (fromList [('a',2)]) (fromList [('a',1),('b',2)]) @?= False
+    isSubmapOfBy (<)  (fromList [('a',1)]) (fromList [('a',1),('b',2)]) @?= False
+    isSubmapOfBy (==) (fromList [('a',1),('b',2)]) (fromList [('a',1)]) @?= False
+
+test_isProperSubmapOfBy :: Assertion
+test_isProperSubmapOfBy = do
+    isProperSubmapOfBy (==) (fromList [(1,1)]) (fromList [(1,1),(2,2)]) @?= True
+    isProperSubmapOfBy (<=) (fromList [(1,1)]) (fromList [(1,1),(2,2)]) @?= True
+    isProperSubmapOfBy (==) (fromList [(1,1),(2,2)]) (fromList [(1,1),(2,2)]) @?= False
+    isProperSubmapOfBy (==) (fromList [(1,1),(2,2)]) (fromList [(1,1)]) @?= False
+    isProperSubmapOfBy (<)  (fromList [(1,1)])       (fromList [(1,1),(2,2)]) @?= False
+
+----------------------------------------------------------------
+-- Indexed
+
+test_lookupIndex :: Assertion
+test_lookupIndex = do
+    isJust (lookupIndex 2 (fromList [(5,"a"), (3,"b")]))   @?= False
+    fromJust (lookupIndex 3 (fromList [(5,"a"), (3,"b")])) @?= 0
+    fromJust (lookupIndex 5 (fromList [(5,"a"), (3,"b")])) @?= 1
+    isJust (lookupIndex 6 (fromList [(5,"a"), (3,"b")]))   @?= False
+
+test_findIndex :: Assertion
+test_findIndex = do
+    findIndex 3 (fromList [(5,"a"), (3,"b")]) @?= 0
+    findIndex 5 (fromList [(5,"a"), (3,"b")]) @?= 1
+
+test_elemAt :: Assertion
+test_elemAt = do
+    elemAt 0 (fromList [(5,"a"), (3,"b")]) @?= (3,"b")
+    elemAt 1 (fromList [(5,"a"), (3,"b")]) @?= (5, "a")
+
+test_updateAt :: Assertion
+test_updateAt = do
+    updateAt (\ _ _ -> Just "x") 0    (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "x"), (5, "a")]
+    updateAt (\ _ _ -> Just "x") 1    (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "x")]
+    updateAt (\_ _  -> Nothing)  0    (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+    updateAt (\_ _  -> Nothing)  1    (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+
+test_deleteAt :: Assertion
+test_deleteAt = do
+    deleteAt 0  (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+    deleteAt 1  (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+
+----------------------------------------------------------------
+-- Min/Max
+
+test_findMin :: Assertion
+test_findMin = findMin (fromList [(5,"a"), (3,"b")]) @?= (3,"b")
+
+test_findMax :: Assertion
+test_findMax = findMax (fromList [(5,"a"), (3,"b")]) @?= (5,"a")
+
+test_deleteMin :: Assertion
+test_deleteMin = do
+    deleteMin (fromList [(5,"a"), (3,"b"), (7,"c")]) @?= fromList [(5,"a"), (7,"c")]
+    deleteMin (empty :: SMap) @?= empty
+
+test_deleteMax :: Assertion
+test_deleteMax = do
+    deleteMax (fromList [(5,"a"), (3,"b"), (7,"c")]) @?= fromList [(3,"b"), (5,"a")]
+    deleteMax (empty :: SMap) @?= empty
+
+test_deleteFindMin :: Assertion
+test_deleteFindMin = deleteFindMin (fromList [(5,"a"), (3,"b"), (10,"c")]) @?= ((3,"b"), fromList[(5,"a"), (10,"c")])
+
+test_deleteFindMax :: Assertion
+test_deleteFindMax = deleteFindMax (fromList [(5,"a"), (3,"b"), (10,"c")]) @?= ((10,"c"), fromList [(3,"b"), (5,"a")])
+
+test_updateMin :: Assertion
+test_updateMin = do
+    updateMin (\ a -> Just ("X" ++ a)) (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "Xb"), (5, "a")]
+    updateMin (\ _ -> Nothing)         (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+
+test_updateMax :: Assertion
+test_updateMax = do
+    updateMax (\ a -> Just ("X" ++ a)) (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "Xa")]
+    updateMax (\ _ -> Nothing)         (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+
+test_updateMinWithKey :: Assertion
+test_updateMinWithKey = do
+    updateMinWithKey (\ k a -> Just ((show k) ++ ":" ++ a)) (fromList [(5,"a"), (3,"b")]) @?= fromList [(3,"3:b"), (5,"a")]
+    updateMinWithKey (\ _ _ -> Nothing)                     (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+
+test_updateMaxWithKey :: Assertion
+test_updateMaxWithKey = do
+    updateMaxWithKey (\ k a -> Just ((show k) ++ ":" ++ a)) (fromList [(5,"a"), (3,"b")]) @?= fromList [(3,"b"), (5,"5:a")]
+    updateMaxWithKey (\ _ _ -> Nothing)                     (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+
+test_minView :: Assertion
+test_minView = do
+    minView (fromList [(5,"a"), (3,"b")]) @?= Just ("b", singleton 5 "a")
+    minView (empty :: SMap) @?= Nothing
+
+test_maxView :: Assertion
+test_maxView = do
+    maxView (fromList [(5,"a"), (3,"b")]) @?= Just ("a", singleton 3 "b")
+    maxView (empty :: SMap) @?= Nothing
+
+test_minViewWithKey :: Assertion
+test_minViewWithKey = do
+    minViewWithKey (fromList [(5,"a"), (3,"b")]) @?= Just ((3,"b"), singleton 5 "a")
+    minViewWithKey (empty :: SMap) @?= Nothing
+
+test_maxViewWithKey :: Assertion
+test_maxViewWithKey = do
+    maxViewWithKey (fromList [(5,"a"), (3,"b")]) @?= Just ((5,"a"), singleton 3 "b")
+    maxViewWithKey (empty :: SMap) @?= Nothing
+
+----------------------------------------------------------------
+-- Debug
+
+test_valid :: Assertion
+test_valid = do
+    valid (fromAscList [(3,"b"), (5,"a")]) @?= True
+    valid (fromAscList [(5,"a"), (3,"b")]) @?= False
+
+----------------------------------------------------------------
 -- QuickCheck
 ----------------------------------------------------------------
 
@@ -301,6 +675,7 @@ instance (Ord k,Arbitrary k,Arbitrary a) => Arbitrary (Map k a) where
 
 type UMap = Map Int ()
 type IMap = Map Int Int
+type SMap = Map Int String
 
 ----------------------------------------------------------------
 
