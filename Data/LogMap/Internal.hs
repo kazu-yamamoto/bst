@@ -1564,9 +1564,9 @@ join :: Ord k => k -> a -> LogMap k a -> LogMap k a -> LogMap k a
 join kx x Tip r  = insertMin kx x r
 join kx x l Tip  = insertMax kx x l
 join kx x l@(Bin sizeL ky y ly ry) r@(Bin sizeR kz z lz rz)
-  | size l .<. size r = balanceR kz z (join kx x l lz) rz
-  | size r .<. size l = balanceL ky y ly (join kx x ry r)
-  | otherwise         = bin kx x l r
+  | sizeL .<. sizeR = balanceR kz z (join kx x l lz) rz
+  | sizeR .<. sizeL = balanceL ky y ly (join kx x ry r)
+  | otherwise       = bin kx x l r
 
 -- insertMin and insertMax don't perform potentially expensive comparisons.
 insertMax,insertMin :: k -> a -> LogMap k a -> LogMap k a
@@ -1589,8 +1589,8 @@ merge :: LogMap k a -> LogMap k a -> LogMap k a
 merge Tip r   = r
 merge l Tip   = l
 merge l@(Bin sizeL kx x lx rx) r@(Bin sizeR ky y ly ry)
-  | size l .<. size r = balanceR ky y (merge l ly) ry
-  | size r .<. size l = balanceL kx x lx (merge rx r)
+  | sizeL .<. sizeR = balanceR ky y (merge l ly) ry
+  | sizeR .<. sizeL = balanceL kx x lx (merge rx r)
   | otherwise         = glue l r
 
 {--------------------------------------------------------------------
