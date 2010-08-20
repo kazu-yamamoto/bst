@@ -19,6 +19,31 @@ import Test.QuickCheck
 tests :: [Test]
 tests = [ testGroup "Test Case" [
                testCase "ticket4242" test_ticket4242
+             , testCase "index"      test_index
+             , testCase "size"       test_size
+             , testCase "size2"      test_size2
+             , testCase "member"     test_member
+             , testCase "notMember"  test_notMember
+             , testCase "lookup"     test_lookup
+             , testCase "findWithDefault"     test_findWithDefault
+             , testCase "empty" test_empty
+             , testCase "singleton" test_singleton
+             , testCase "insert" test_insert
+             , testCase "insertWith" test_insertWith
+             , testCase "insertWithKey" test_insertWithKey
+             , testCase "insertLookupWithKey" test_insertLookupWithKey
+             , testCase "delete" test_delete
+             , testCase "adjust" test_adjust
+             , testCase "adjustWithKey" test_adjustWithKey
+             , testCase "update" test_update
+             , testCase "updateWithKey" test_updateWithKey
+             , testCase "updateLookupWithKey" test_updateLookupWithKey
+             , testCase "alter" test_alter
+               {-
+             , testCase "" test_
+             , testCase "" test_
+             , testCase "" test_
+-}
              ]
         , testGroup "Property Test" [
                testProperty "fromList"             prop_fromList
@@ -52,12 +77,162 @@ main = defaultMain tests
 
 ----------------------------------------------------------------
 -- Unit tests
+----------------------------------------------------------------
 
 test_ticket4242 :: Assertion
 test_ticket4242 = (valid $ deleteMin $ deleteMin $ fromList [ (i, ()) | i <- [0,2,5,1,6,4,8,9,7,11,10,3] :: [Int] ]) @?= True
 
 ----------------------------------------------------------------
+-- Operators
+
+test_index :: Assertion
+test_index = fromList [(5,'a'), (3,'b')] ! 5 @?= 'a'
+
+----------------------------------------------------------------
+-- Query
+
+test_size :: Assertion
+test_size = do
+    null (empty)           @?= True
+    null (singleton 1 'a') @?= False
+
+test_size2 :: Assertion
+test_size2 = do
+    size empty                                   @?= 0
+    size (singleton 1 'a')                       @?= 1
+    size (fromList([(1,'a'), (2,'c'), (3,'b')])) @?= 3
+
+test_member :: Assertion
+test_member = do
+    member 5 (fromList [(5,'a'), (3,'b')]) @?= True
+    member 1 (fromList [(5,'a'), (3,'b')]) @?= False
+
+test_notMember :: Assertion
+test_notMember = do
+    notMember 5 (fromList [(5,'a'), (3,'b')]) @?= False
+    notMember 1 (fromList [(5,'a'), (3,'b')]) @?= True
+
+test_lookup :: Assertion
+test_lookup = do
+    employeeCurrency "John" @?= Just "Euro"
+    employeeCurrency "Pete" @?= Nothing
+  where
+    employeeDept = fromList([("John","Sales"), ("Bob","IT")])
+    deptCountry = fromList([("IT","USA"), ("Sales","France")])
+    countryCurrency = fromList([("USA", "Dollar"), ("France", "Euro")])
+    employeeCurrency :: String -> Maybe String
+    employeeCurrency name = do
+        dept <- lookup name employeeDept
+        country <- lookup dept deptCountry
+        lookup country countryCurrency
+
+test_findWithDefault :: Assertion
+test_findWithDefault = do
+    findWithDefault 'x' 1 (fromList [(5,'a'), (3,'b')]) @?= 'x'
+    findWithDefault 'x' 5 (fromList [(5,'a'), (3,'b')]) @?= 'a'
+
+----------------------------------------------------------------
+-- Construction
+
+test_empty :: Assertion
+test_empty = do
+    (empty :: UMap)  @?= fromList []
+    size empty @?= 0
+
+test_singleton :: Assertion
+test_singleton = do
+    singleton 1 'a'        @?= fromList [(1, 'a')]
+    size (singleton 1 'a') @?= 1
+
+test_insert :: Assertion
+test_insert = do
+    insert 5 'x' (fromList [(5,'a'), (3,'b')]) @?= fromList [(3, 'b'), (5, 'x')]
+    insert 7 'x' (fromList [(5,'a'), (3,'b')]) @?= fromList [(3, 'b'), (5, 'a'), (7, 'x')]
+    insert 5 'x' empty                         @?= singleton 5 'x'
+
+test_insertWith :: Assertion
+test_insertWith = do
+    insertWith (++) 5 "xxx" (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "xxxa")]
+    insertWith (++) 7 "xxx" (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a"), (7, "xxx")]
+    insertWith (++) 5 "xxx" empty                         @?= singleton 5 "xxx"
+
+test_insertWithKey :: Assertion
+test_insertWithKey = do
+    insertWithKey f 5 "xxx" (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "5:xxx|a")]
+    insertWithKey f 7 "xxx" (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a"), (7, "xxx")]
+    insertWithKey f 5 "xxx" empty                         @?= singleton 5 "xxx"
+  where
+    f key new_value old_value = (show key) ++ ":" ++ new_value ++ "|" ++ old_value
+
+test_insertLookupWithKey :: Assertion
+test_insertLookupWithKey = do
+    insertLookupWithKey f 5 "xxx" (fromList [(5,"a"), (3,"b")]) @?= (Just "a", fromList [(3, "b"), (5, "5:xxx|a")])
+    insertLookupWithKey f 7 "xxx" (fromList [(5,"a"), (3,"b")]) @?= (Nothing,  fromList [(3, "b"), (5, "a"), (7, "xxx")])
+    insertLookupWithKey f 5 "xxx" empty                         @?= (Nothing,  singleton 5 "xxx")
+  where
+    f key new_value old_value = (show key) ++ ":" ++ new_value ++ "|" ++ old_value
+
+----------------------------------------------------------------
+-- Delete/Update
+
+test_delete :: Assertion
+test_delete = do
+    delete 5 (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+    delete 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    delete 5 empty                         @?= (empty :: IMap)
+
+test_adjust :: Assertion
+test_adjust = do
+    adjust ("new " ++) 5 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "new a")]
+    adjust ("new " ++) 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    adjust ("new " ++) 7 empty                         @?= empty
+
+test_adjustWithKey :: Assertion
+test_adjustWithKey = do
+    adjustWithKey f 5 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "5:new a")]
+    adjustWithKey f 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    adjustWithKey f 7 empty                         @?= empty
+  where
+    f key x = (show key) ++ ":new " ++ x
+
+test_update :: Assertion
+test_update = do
+    update f 5 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "new a")]
+    update f 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    update f 3 (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+  where
+    f x = if x == "a" then Just "new a" else Nothing
+
+test_updateWithKey :: Assertion
+test_updateWithKey = do
+    updateWithKey f 5 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "5:new a")]
+    updateWithKey f 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    updateWithKey f 3 (fromList [(5,"a"), (3,"b")]) @?= singleton 5 "a"
+ where
+     f k x = if x == "a" then Just ((show k) ++ ":new a") else Nothing
+
+test_updateLookupWithKey :: Assertion
+test_updateLookupWithKey = do
+    updateLookupWithKey f 5 (fromList [(5,"a"), (3,"b")]) @?= (Just "5:new a", fromList [(3, "b"), (5, "5:new a")])
+    updateLookupWithKey f 7 (fromList [(5,"a"), (3,"b")]) @?= (Nothing,  fromList [(3, "b"), (5, "a")])
+    updateLookupWithKey f 3 (fromList [(5,"a"), (3,"b")]) @?= (Just "b", singleton 5 "a")
+  where
+    f k x = if x == "a" then Just ((show k) ++ ":new a") else Nothing
+
+test_alter :: Assertion
+test_alter = do
+    alter f 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a")]
+    alter f 5 (fromList [(5,"a"), (3,"b")]) @?= singleton 3 "b"
+    alter g 7 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "a"), (7, "c")]
+    alter g 5 (fromList [(5,"a"), (3,"b")]) @?= fromList [(3, "b"), (5, "c")]
+  where
+    f _ = Nothing
+    g _ = Just "c"
+
+
+----------------------------------------------------------------
 -- QuickCheck
+----------------------------------------------------------------
 
 instance (Ord k,Arbitrary k,Arbitrary a) => Arbitrary (Map k a) where
   arbitrary = fromList <$> (zip <$> arbitrary <*> arbitrary)
