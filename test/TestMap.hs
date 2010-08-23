@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module TestMap where
+module Main where
 
 import Control.Applicative ((<$>),(<*>))
 import Data.List (nub,sort)
