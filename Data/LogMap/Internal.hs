@@ -378,7 +378,7 @@ updateWithKey f k t
       Tip -> Tip
       Bin sx kx x l r
           -> case compare k kx of
-               LT -> balanceR kx x (updateWithKey f k l) r -- xxx
+               LT -> balanceR kx x (updateWithKey f k l) r
                GT -> balanceL kx x l (updateWithKey f k r)
                EQ -> case f kx x of
                        Just x' -> Bin sx kx x' l r
@@ -425,8 +425,8 @@ alter f k t
                Just x -> singleton k x
       Bin sx kx x l r
           -> case compare k kx of
-               LT -> balanceR kx x (alter f k l) r
-               GT -> balanceL kx x l (alter f k r)
+               LT -> balanceR kx x (alter f k l) r -- xxx
+               GT -> balanceL kx x l (alter f k r) -- xxx
                EQ -> case f (Just x) of
                        Just x' -> Bin sx kx x' l r
                        Nothing -> glue l r
