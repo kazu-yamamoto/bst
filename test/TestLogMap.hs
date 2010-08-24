@@ -126,9 +126,11 @@ tests = [ testGroup "Test Case" [
              , testProperty "delete non member"    prop_deleteNonMember
              , testProperty "deleteMin"            prop_deleteMin
              , testProperty "deleteMax"            prop_deleteMax
+             , testProperty "split"                prop_split
              , testProperty "split then join"      prop_join
              , testProperty "split then merge"     prop_merge
              , testProperty "union"                prop_union
+             , testProperty "union model"          prop_unionModel
              , testProperty "union singleton"      prop_unionSingleton
              , testProperty "union associative"    prop_unionAssoc
              , testProperty "fromAscList"          prop_ordered
@@ -140,6 +142,7 @@ tests = [ testGroup "Test Case" [
              , testProperty "difference model"     prop_differenceModel
              , testProperty "intersection"         prop_intersection
              , testProperty "intersection model"   prop_intersectionModel
+             , testProperty "alter"                prop_alter
              ]
         ]
 
@@ -773,3 +776,14 @@ prop_ordered
 
 prop_list :: [Int] -> Bool
 prop_list xs = (sort (nub xs) == [x | (x,()) <- toList (fromList [(x,()) | x <- xs])])
+
+----------------------------------------------------------------
+
+prop_alter :: UMap -> Int -> Bool
+prop_alter t k = balanced t' && case lookup k t of
+    Just _  -> (size t - 1) == size t' && lookup k t' == Nothing
+    Nothing -> (size t + 1) == size t' && lookup k t' /= Nothing
+  where
+    t' = alter f k t
+    f Nothing   = Just ()
+    f (Just ()) = Nothing
