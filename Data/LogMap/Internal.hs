@@ -3,7 +3,7 @@
 
 module Data.LogMap.Internal where
 
-import Data.Bits ((.&.))
+import Data.Bits ((.&.), shiftR, shiftL)
 import Prelude hiding (lookup,map,filter,null)
 import qualified Data.Set as Set
 import qualified Data.List as List
@@ -425,8 +425,8 @@ alter f k t
                Just x -> singleton k x
       Bin sx kx x l r
           -> case compare k kx of
-               LT -> balanceR kx x (alter f k l) r -- xxx
-               GT -> balanceL kx x l (alter f k r) -- xxx
+               LT -> balance kx x (alter f k l) r
+               GT -> balance kx x l (alter f k r)
                EQ -> case f (Just x) of
                        Just x' -> Bin sx kx x' l r
                        Nothing -> glue l r
@@ -1634,10 +1634,10 @@ deleteFindMax Tip               = (error "Map.deleteFindMax: can not return the 
 (.<.) :: Size -> Size -> Bool
 a .<. b
   | a >= b    = False
-  | otherwise = ((a .&. b) * 2) < b
+  | otherwise = ((a .&. b) `shiftL` 1) < b
 
 isBalanced :: LogMap k a -> LogMap k a -> Bool
-isBalanced a b = not $ size a .<. ((size b) `div` 2)
+isBalanced a b = not $ size a .<. (size b `shiftR` 1)
 
 ----------------------------------------------------------------
 
@@ -1650,6 +1650,12 @@ balanceR :: k -> a -> LogMap k a -> LogMap k a -> LogMap k a
 balanceR k x l r
   | isBalanced r l = bin k x l r
   | otherwise      = rotateR k x l r
+
+balance :: k -> a -> LogMap k a -> LogMap k a -> LogMap k a
+balance k x l r
+  | isBalanced l r && isBalanced r l = bin k x l r
+  | size l > size r                  = rotateR k x l r
+  | otherwise                        = rotateL k x l r
 
 ----------------------------------------------------------------
 
