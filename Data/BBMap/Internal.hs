@@ -1564,9 +1564,9 @@ join :: Ord k => k -> a -> BBMap k a -> BBMap k a -> BBMap k a
 join kx x Tip r  = insertMin kx x r
 join kx x l Tip  = insertMax kx x l
 join kx x l@(Bin sizeL ky y ly ry) r@(Bin sizeR kz z lz rz)
-  | sizeL < sizeR = balanceR kz z (join kx x l lz) rz -- xxx
-  | sizeR < sizeL = balanceL ky y ly (join kx x ry r) -- xxx
-  | otherwise       = bin kx x l r
+  | isBalanced l r && isBalanced r l = bin kx x l r
+  | isBalanced l r                   = balanceL ky y ly (join kx x ry r) -- xxx
+  | otherwise                        = balanceR kz z (join kx x l lz) rz -- xxx
 
 -- insertMin and insertMax don't perform potentially expensive comparisons.
 insertMax,insertMin :: k -> a -> BBMap k a -> BBMap k a
@@ -1589,9 +1589,9 @@ merge :: BBMap k a -> BBMap k a -> BBMap k a
 merge Tip r   = r
 merge l Tip   = l
 merge l@(Bin sizeL kx x lx rx) r@(Bin sizeR ky y ly ry)
-  | sizeL < sizeR = balanceR ky y (merge l ly) ry -- xxx
-  | sizeR < sizeL = balanceL kx x lx (merge rx r) -- xxx
-  | otherwise         = glue l r
+  | isBalanced l r && isBalanced r l = glue l r
+  | isBalanced l r                   = balanceL kx x lx (merge rx r)
+  | otherwise                        = balanceR ky y (merge l ly) ry
 
 {--------------------------------------------------------------------
   [glue l r]: glues two trees together.
