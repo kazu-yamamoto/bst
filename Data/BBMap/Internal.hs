@@ -1642,7 +1642,7 @@ isSingle a b = 2 * (x + y) * (x + y) < (x + 2 * y) * (x + 2 * y)
   where
     x = size a + 1
     y = size b + 1
-    
+
 ----------------------------------------------------------------
 
 balanceL :: k -> a -> BBMap k a -> BBMap k a -> BBMap k a
