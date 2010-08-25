@@ -7,6 +7,7 @@ import Data.List (nub,sort)
 import qualified Data.List as L ((\\),intersect)
 import qualified Data.Set
 import Data.SMap.Types
+import Data.SMap.Balance
 import Data.SMap.Internal
 import Data.Maybe (isJust,fromJust)
 import Prelude hiding (lookup,map,filter,null)

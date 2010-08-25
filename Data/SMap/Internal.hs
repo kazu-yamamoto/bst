@@ -185,6 +185,7 @@ empty :: Map k a
 empty 
   = Tip
 
+{-
 -- | /O(1)/. A map with a single element.
 --
 -- > singleton 1 'a'        == fromList [(1, 'a')]
@@ -193,6 +194,7 @@ empty
 singleton :: k -> a -> Map k a
 singleton k x  
   = Bin 1 k x Tip Tip
+-}
 
 {--------------------------------------------------------------------
   Insertion
@@ -1594,6 +1596,7 @@ splitMember x t = let (l,m,r) = splitLookup x t in
 {--------------------------------------------------------------------
   Join 
 --------------------------------------------------------------------}
+{-
 join :: Ord k => k -> a -> Map k a -> Map k a -> Map k a
 join kx x Tip r  = insertMin kx x r
 join kx x l Tip  = insertMax kx x l
@@ -1632,6 +1635,8 @@ merge l@(Bin sizeL kx x lx rx) r@(Bin sizeR ky y ly ry)
   | delta*sizeR < sizeL = balanceL kx x lx (merge rx r)
   | otherwise            = glue l r
 
+-}
+{-
 {--------------------------------------------------------------------
   [glue l r]: glues two trees together.
   Assumes that [l] and [r] are already balanced with respect to each other.
@@ -1642,7 +1647,6 @@ glue l Tip = l
 glue l r   
   | size l > size r = let ((km,m),l') = deleteFindMax l in balanceL km m l' r
   | otherwise       = let ((km,m),r') = deleteFindMin r in balanceR km m l r'
-
 
 -- | /O(log n)/. Delete and find the minimal element.
 --
@@ -1667,7 +1671,7 @@ deleteFindMax t
       Bin _ k x l Tip -> ((k,x),l)
       Bin _ k x l r   -> let (km,r') = deleteFindMax r in (km,balance k x l r')
       Tip             -> (error "Map.deleteFindMax: can not return the maximal element of an empty map", Tip)
-
+-}
 
 {--------------------------------------------------------------------
   Eq converts the tree to a list. In a lazy setting, this 
@@ -1873,6 +1877,7 @@ ordered t
           Tip              -> True
           Bin _ kx _ l r  -> (lo kx) && (hi kx) && bounded lo (<kx) l && bounded (>kx) hi r
 
+{-
 -- | Exported only for "Debug.QuickCheck"
 balanced :: Map k a -> Bool
 balanced t
@@ -1880,6 +1885,7 @@ balanced t
       Tip            -> True
       Bin _ _ _ l r  -> (size l + size r <= 1 || (size l <= delta*size r && size r <= delta*size l)) &&
                         balanced l && balanced r
+-}
 
 validsize :: Map a b -> Bool
 validsize t
