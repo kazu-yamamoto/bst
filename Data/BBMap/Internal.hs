@@ -1638,7 +1638,7 @@ isBalanced a b = 2 * y * y <= (x + y) * (x + y)
     y = size b + 1
 
 isSingle :: BBMap k a -> BBMap k a -> Bool
-isSingle a b = 2 * (x + y) * (x + y) < (x + 2 * y) * (x + 2 * y)
+isSingle a b = x * x < 2 * y * y
   where
     x = size a + 1
     y = size b + 1
