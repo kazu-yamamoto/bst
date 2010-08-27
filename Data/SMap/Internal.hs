@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -XNoBangPatterns #-}
 
-module Data.Map.Internal where
+module Data.SMap.Internal where
 
+import Data.SMap.Types
+import Data.SMap.Balance
 import Prelude hiding (lookup,map,filter,null)
 import qualified Data.Set as Set
 import qualified Data.List as List
@@ -42,11 +44,6 @@ m1 \\ m2 = difference m1 m2
 {--------------------------------------------------------------------
   Size balanced trees.
 --------------------------------------------------------------------}
--- | A Map from keys @k@ to values @a@. 
-data Map k a  = Tip 
-              | Bin {-# UNPACK #-} !Size !k a !(Map k a) !(Map k a) 
-
-type Size     = Int
 
 instance (Ord k) => Monoid (Map k v) where
     mempty  = empty
@@ -84,19 +81,6 @@ null t
   = case t of
       Tip    -> True
       Bin {} -> False
-
--- | /O(1)/. The number of elements in the map.
---
--- > size empty                                   == 0
--- > size (singleton 1 'a')                       == 1
--- > size (fromList([(1,'a'), (2,'c'), (3,'b')])) == 3
-
-size :: Map k a -> Int
-size t
-  = case t of
-      Tip             -> 0
-      Bin sz _ _ _ _  -> sz
-
 
 -- | /O(log n)/. Lookup the value at a key in the map.
 --
@@ -201,6 +185,7 @@ empty :: Map k a
 empty 
   = Tip
 
+{-
 -- | /O(1)/. A map with a single element.
 --
 -- > singleton 1 'a'        == fromList [(1, 'a')]
@@ -209,6 +194,7 @@ empty
 singleton :: k -> a -> Map k a
 singleton k x  
   = Bin 1 k x Tip Tip
+-}
 
 {--------------------------------------------------------------------
   Insertion
@@ -228,8 +214,8 @@ insert kx x t
       Tip -> singleton kx x
       Bin sz ky y l r
           -> case compare kx ky of
-               LT -> balance ky y (insert kx x l) r
-               GT -> balance ky y l (insert kx x r)
+               LT -> balanceR ky y (insert kx x l) r
+               GT -> balanceL ky y l (insert kx x r)
                EQ -> Bin sz kx x l r
 
 -- | /O(log n)/. Insert with a function, combining new value and old value.
@@ -270,8 +256,8 @@ insertWithKey f kx x t
       Tip -> singleton kx x
       Bin sy ky y l r
           -> case compare kx ky of
-               LT -> balance ky y (insertWithKey f kx x l) r
-               GT -> balance ky y l (insertWithKey f kx x r)
+               LT -> balanceR ky y (insertWithKey f kx x l) r
+               GT -> balanceL ky y l (insertWithKey f kx x r)
                EQ -> Bin sy kx (f kx x y) l r
 
 -- | Same as 'insertWithKey', but the combining function is applied strictly.
@@ -281,8 +267,8 @@ insertWithKey' f kx x t
       Tip -> singleton kx $! x
       Bin sy ky y l r
           -> case compare kx ky of
-               LT -> balance ky y (insertWithKey' f kx x l) r
-               GT -> balance ky y l (insertWithKey' f kx x r)
+               LT -> balanceR ky y (insertWithKey' f kx x l) r
+               GT -> balanceL ky y l (insertWithKey' f kx x r)
                EQ -> let x' = f kx x y in seq x' (Bin sy kx x' l r)
 
 
@@ -308,8 +294,8 @@ insertLookupWithKey f kx x t
       Tip -> (Nothing, singleton kx x)
       Bin sy ky y l r
           -> case compare kx ky of
-               LT -> let (found,l') = insertLookupWithKey f kx x l in (found,balance ky y l' r)
-               GT -> let (found,r') = insertLookupWithKey f kx x r in (found,balance ky y l r')
+               LT -> let (found,l') = insertLookupWithKey f kx x l in (found,balanceR ky y l' r)
+               GT -> let (found,r') = insertLookupWithKey f kx x r in (found,balanceL ky y l r')
                EQ -> (Just y, Bin sy kx (f kx x y) l r)
 
 {--------------------------------------------------------------------
@@ -329,8 +315,8 @@ delete k t
       Tip -> Tip
       Bin _ kx x l r
           -> case compare k kx of
-               LT -> balance kx x (delete k l) r
-               GT -> balance kx x l (delete k r)
+               LT -> balanceL kx x (delete k l) r
+               GT -> balanceR kx x l (delete k r)
                EQ -> glue l r
 
 -- | /O(log n)/. Update a value at a specific key with the result of the provided function.
@@ -386,8 +372,8 @@ updateWithKey f k t
       Tip -> Tip
       Bin sx kx x l r 
           -> case compare k kx of
-               LT -> balance kx x (updateWithKey f k l) r
-               GT -> balance kx x l (updateWithKey f k r)
+               LT -> balanceR kx x (updateWithKey f k l) r
+               GT -> balanceL kx x l (updateWithKey f k r)
                EQ -> case f kx x of
                        Just x' -> Bin sx kx x' l r
                        Nothing -> glue l r
@@ -407,8 +393,8 @@ updateLookupWithKey f k t
       Tip -> (Nothing,Tip)
       Bin sx kx x l r 
           -> case compare k kx of
-               LT -> let (found,l') = updateLookupWithKey f k l in (found,balance kx x l' r)
-               GT -> let (found,r') = updateLookupWithKey f k r in (found,balance kx x l r') 
+               LT -> let (found,l') = updateLookupWithKey f k l in (found,balanceR kx x l' r)
+               GT -> let (found,r') = updateLookupWithKey f k r in (found,balanceL kx x l r') 
                EQ -> case f kx x of
                        Just x' -> (Just x',Bin sx kx x' l r)
                        Nothing -> (Just x,glue l r)
@@ -559,7 +545,7 @@ findMax Tip                 = error "Map.findMax: empty map has no maximal eleme
 
 deleteMin :: Map k a -> Map k a
 deleteMin (Bin _ _  _ Tip r)  = r
-deleteMin (Bin _ kx x l r)    = balance kx x (deleteMin l) r
+deleteMin (Bin _ kx x l r)    = balanceL kx x (deleteMin l) r
 deleteMin Tip                 = Tip
 
 -- | /O(log n)/. Delete the maximal key. Returns an empty map if the map is empty.
@@ -1610,12 +1596,15 @@ splitMember x t = let (l,m,r) = splitLookup x t in
 {--------------------------------------------------------------------
   Join 
 --------------------------------------------------------------------}
+{-
 join :: Ord k => k -> a -> Map k a -> Map k a -> Map k a
 join kx x Tip r  = insertMin kx x r
 join kx x l Tip  = insertMax kx x l
 join kx x l@(Bin sizeL ky y ly ry) r@(Bin sizeR kz z lz rz)
-  | delta*sizeL <= sizeR  = balance kz z (join kx x l lz) rz
-  | delta*sizeR <= sizeL  = balance ky y ly (join kx x ry r)
+--  | delta*sizeL <= sizeR  = balance kz z (join kx x l lz) rz
+  | delta*sizeL < sizeR  = balanceR kz z (join kx x l lz) rz
+--  | delta*sizeR <= sizeL  = balance ky y ly (join kx x ry r)
+  | delta*sizeR < sizeL  = balanceL ky y ly (join kx x ry r)
   | otherwise             = bin kx x l r
 
 
@@ -1625,13 +1614,13 @@ insertMax kx x t
   = case t of
       Tip -> singleton kx x
       Bin _ ky y l r
-          -> balance ky y l (insertMax kx x r)
+          -> balanceL ky y l (insertMax kx x r)
              
 insertMin kx x t
   = case t of
       Tip -> singleton kx x
       Bin _ ky y l r
-          -> balance ky y (insertMin kx x l) r
+          -> balanceR ky y (insertMin kx x l) r
              
 {--------------------------------------------------------------------
   [merge l r]: merges two trees.
@@ -1640,10 +1629,14 @@ merge :: Map k a -> Map k a -> Map k a
 merge Tip r   = r
 merge l Tip   = l
 merge l@(Bin sizeL kx x lx rx) r@(Bin sizeR ky y ly ry)
-  | delta*sizeL <= sizeR = balance ky y (merge l ly) ry
-  | delta*sizeR <= sizeL = balance kx x lx (merge rx r)
+--  | delta*sizeL <= sizeR = balance ky y (merge l ly) ry
+  | delta*sizeL < sizeR = balanceR ky y (merge l ly) ry
+--  | delta*sizeR <= sizeL = balance kx x lx (merge rx r)
+  | delta*sizeR < sizeL = balanceL kx x lx (merge rx r)
   | otherwise            = glue l r
 
+-}
+{-
 {--------------------------------------------------------------------
   [glue l r]: glues two trees together.
   Assumes that [l] and [r] are already balanced with respect to each other.
@@ -1652,9 +1645,8 @@ glue :: Map k a -> Map k a -> Map k a
 glue Tip r = r
 glue l Tip = l
 glue l r   
-  | size l > size r = let ((km,m),l') = deleteFindMax l in balance km m l' r
-  | otherwise       = let ((km,m),r') = deleteFindMin r in balance km m l r'
-
+  | size l > size r = let ((km,m),l') = deleteFindMax l in balanceL km m l' r
+  | otherwise       = let ((km,m),r') = deleteFindMin r in balanceR km m l r'
 
 -- | /O(log n)/. Delete and find the minimal element.
 --
@@ -1679,89 +1671,7 @@ deleteFindMax t
       Bin _ k x l Tip -> ((k,x),l)
       Bin _ k x l r   -> let (km,r') = deleteFindMax r in (km,balance k x l r')
       Tip             -> (error "Map.deleteFindMax: can not return the maximal element of an empty map", Tip)
-
-
-{--------------------------------------------------------------------
-  [balance l x r] balances two trees with value x.
-  The sizes of the trees should balance after decreasing the
-  size of one of them. (a rotation).
-
-  [delta] is the maximal relative difference between the sizes of
-          two trees, it corresponds with the [w] in Adams' paper.
-  [ratio] is the ratio between an outer and inner sibling of the
-          heavier subtree in an unbalanced setting. It determines
-          whether a double or single rotation should be performed
-          to restore balance. It is correspondes with the inverse
-          of $\alpha$ in Adam's article.
-
-  Note that:
-  - [delta] should be larger than 4.646 with a [ratio] of 2.
-  - [delta] should be larger than 3.745 with a [ratio] of 1.534.
-  
-  - A lower [delta] leads to a more 'perfectly' balanced tree.
-  - A higher [delta] performs less rebalancing.
-
-  - Balancing is automatic for random data and a balancing
-    scheme is only necessary to avoid pathological worst cases.
-    Almost any choice will do, and in practice, a rather large
-    [delta] may perform better than smaller one.
-
-  Note: in contrast to Adam's paper, we use a ratio of (at least) [2]
-  to decide whether a single or double rotation is needed. Allthough
-  he actually proves that this ratio is needed to maintain the
-  invariants, his implementation uses an invalid ratio of [1].
---------------------------------------------------------------------}
-delta,ratio :: Int
-delta = 5
-ratio = 2
-
-balance :: k -> a -> Map k a -> Map k a -> Map k a
-balance k x l r
-  | sizeL + sizeR <= 1    = Bin sizeX k x l r
---  | sizeR >= delta*sizeL  = rotateL k x l r
-  | sizeR > delta*sizeL  = rotateL k x l r
---  | sizeL >= delta*sizeR  = rotateR k x l r
-  | sizeL > delta*sizeR  = rotateR k x l r
-  | otherwise             = Bin sizeX k x l r
-  where
-    sizeL = size l
-    sizeR = size r
-    sizeX = sizeL + sizeR + 1
-
--- rotate
-rotateL :: a -> b -> Map a b -> Map a b -> Map a b
-rotateL k x l r@(Bin _ _ _ ly ry)
-  | size ly < ratio*size ry = singleL k x l r
-  | otherwise               = doubleL k x l r
-rotateL _ _ _ Tip = error "rotateL Tip"
-
-rotateR :: a -> b -> Map a b -> Map a b -> Map a b
-rotateR k x l@(Bin _ _ _ ly ry) r
-  | size ry < ratio*size ly = singleR k x l r
-  | otherwise               = doubleR k x l r
-rotateR _ _ Tip _ = error "rotateR Tip"
-
--- basic rotations
-singleL, singleR :: a -> b -> Map a b -> Map a b -> Map a b
-singleL k1 x1 t1 (Bin _ k2 x2 t2 t3)  = bin k2 x2 (bin k1 x1 t1 t2) t3
-singleL _ _ _ Tip = error "singleL Tip"
-singleR k1 x1 (Bin _ k2 x2 t1 t2) t3  = bin k2 x2 t1 (bin k1 x1 t2 t3)
-singleR _ _ Tip _ = error "singleR Tip"
-
-doubleL, doubleR :: a -> b -> Map a b -> Map a b -> Map a b
-doubleL k1 x1 t1 (Bin _ k2 x2 (Bin _ k3 x3 t2 t3) t4) = bin k3 x3 (bin k1 x1 t1 t2) (bin k2 x2 t3 t4)
-doubleL _ _ _ _ = error "doubleL"
-doubleR k1 x1 (Bin _ k2 x2 t1 (Bin _ k3 x3 t2 t3)) t4 = bin k3 x3 (bin k2 x2 t1 t2) (bin k1 x1 t3 t4)
-doubleR _ _ _ _ = error "doubleR"
-
-
-{--------------------------------------------------------------------
-  The bin constructor maintains the size of the tree
---------------------------------------------------------------------}
-bin :: k -> a -> Map k a -> Map k a -> Map k a
-bin k x l r
-  = Bin (size l + size r + 1) k x l r
-
+-}
 
 {--------------------------------------------------------------------
   Eq converts the tree to a list. In a lazy setting, this 
@@ -1967,6 +1877,7 @@ ordered t
           Tip              -> True
           Bin _ kx _ l r  -> (lo kx) && (hi kx) && bounded lo (<kx) l && bounded (>kx) hi r
 
+{-
 -- | Exported only for "Debug.QuickCheck"
 balanced :: Map k a -> Bool
 balanced t
@@ -1974,6 +1885,7 @@ balanced t
       Tip            -> True
       Bin _ _ _ l r  -> (size l + size r <= 1 || (size l <= delta*size r && size r <= delta*size l)) &&
                         balanced l && balanced r
+-}
 
 validsize :: Map a b -> Bool
 validsize t

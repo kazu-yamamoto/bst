@@ -3,6 +3,7 @@
 -- Module      :  Data.Map
 -- Copyright   :  (c) Daan Leijen 2002
 --                (c) Andriy Palamarchuk 2008
+--                (c) Kazu Yamamoto 2010
 -- License     :  BSD-style
 -- Maintainer  :  libraries@haskell.org
 -- Stability   :  provisional
@@ -35,7 +36,7 @@
 -- the Big-O notation <http://en.wikipedia.org/wiki/Big_O_notation>.
 -----------------------------------------------------------------------------
 
-module Data.Map  ( 
+module Data.SMap  ( 
             -- * Map type
               Map          -- instance Eq,Show,Read
 
@@ -173,4 +174,5 @@ module Data.Map  (
             ) where
 
 import Prelude ()
-import Data.Map.Internal
+import Data.SMap.Types
+import Data.SMap.Internal
