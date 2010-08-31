@@ -104,8 +104,8 @@ tests = [ testGroup "Test Case" [
              , testCase "deleteAt" test_delete
              , testCase "findMin" test_findMin
              , testCase "findMax" test_findMax
-             , testCase "deleteMin" test_deleteMin
-             , testCase "deleteMax" test_deleteMax
+             , testCase "deleteMin"  test_deleteMin
+             , testCase "deleteMax"  test_deleteMax
              , testCase "deleteFindMin" test_deleteFindMin
              , testCase "deleteFindMax" test_deleteFindMax
              , testCase "updateMin" test_updateMin
@@ -127,7 +127,12 @@ tests = [ testGroup "Test Case" [
              , testProperty "insert then delete2"  prop_insertDelete2
              , testProperty "delete non member"    prop_deleteNonMember
              , testProperty "deleteMin"            prop_deleteMin
+             , testProperty "deleteMin2"           prop_deleteMin2
              , testProperty "deleteMax"            prop_deleteMax
+             , testProperty "deleteMax2"           prop_deleteMax2
+             , testProperty "deleteTop"            prop_deleteTop
+             , testProperty "deleteAny"            prop_deleteAny
+             , testProperty "deleteAll"            prop_deleteAll
              , testProperty "split"                prop_split
              , testProperty "split then join"      prop_join
              , testProperty "split then merge"     prop_merge
@@ -706,10 +711,31 @@ prop_deleteNonMember :: Int -> UMap -> Property
 prop_deleteNonMember k t = (lookup k t == Nothing) ==> (delete k t == t)
 
 prop_deleteMin :: UMap -> Bool
-prop_deleteMin t = valid $ deleteMin $ deleteMin t
+prop_deleteMin t = valid $ deleteMin t
+
+prop_deleteMin2 :: UMap -> Bool
+prop_deleteMin2 t = valid $ deleteMin $ deleteMin t
 
 prop_deleteMax :: UMap -> Bool
-prop_deleteMax t = valid $ deleteMax $ deleteMax t
+prop_deleteMax t = valid $ deleteMax t
+
+prop_deleteMax2 :: UMap -> Bool
+prop_deleteMax2 t = valid $ deleteMax $ deleteMax t
+
+prop_deleteTop :: UMap -> Property
+prop_deleteTop t = (t /= Tip) ==> valid $ delete k t
+  where
+    Bin _ k _ _ _ = t
+
+prop_deleteAny :: UMap -> Property
+prop_deleteAny t = (size t > 3) ==> valid $ delete k t
+  where
+    xs = toList t
+    sz = size t `div` 2
+    k = fst . head . drop sz $ xs
+
+prop_deleteAll :: UMap -> Bool
+prop_deleteAll t = and $ [ valid (delete k t) | (k,_) <- toList t ]
 
 ----------------------------------------------------------------
 
