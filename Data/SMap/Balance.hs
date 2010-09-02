@@ -15,10 +15,10 @@ isBalanced a b = 2 * y * y <= (x + y) * (x + y)
     y = size b + 1
 
 isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = w * w < 2 * z * z
+isSingle a b = z * z < 2 * w * w
   where
-    w = size a + 1
-    z = size b + 1
+    z = size a + 1
+    w = size b + 1
 ----------------------------------------------------------------
 #elif METHOD == 2
 ----------------------------------------------------------------
