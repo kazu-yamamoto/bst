@@ -12,14 +12,15 @@ main = do
     writeFile "RES" res
   where
     toString (x,y) = show x ++ " " ++ show y ++ "\n"
-    toRes = snd
+    toRes :: (Bool,(Int,Int)) -> (Float,Float)
+    toRes (_,(x,y)) = (fromIntegral x / 10, fromIntegral y / 100)
     ok = fst
     ng = not . fst
 
 test :: (Int, Int) -> IO (Bool,(Int, Int))
 test (n,m) = do
   system $ delta n ++ " " ++ from ++ " | " ++ ratio m ++ " > " ++ to
-  status <- system "runghc -i.. -DMETHOD=3 -DTEST Test.hs --maximum-generated-tests=100" -- FIXME
+  status <- system "runghc -i.. -DMETHOD=3 -DTEST Test.hs --maximum-generated-tests=1000" -- FIXME
   case status of
       ExitSuccess -> return (True,(n,m))
       _           -> return (False,(n,m))
