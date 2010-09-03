@@ -5,7 +5,7 @@ import System.Process
 
 main :: IO ()
 main = do
-    results <- mapM test [(x,y) | x <- [29..31], y <- [100,105..215]] -- FIXME
+    results <- mapM test [(x,y) | x <- [20..50], y <- [100,105..215]] -- FIXME
     let res = (concatMap toString . map toRes . filter ok $ results)
            ++ "\n"
            ++ (concatMap toString . map toRes . filter ng $ results)
@@ -20,7 +20,7 @@ main = do
 test :: (Int, Int) -> IO (Bool,(Int, Int))
 test (n,m) = do
   system $ delta n ++ " " ++ from ++ " | " ++ ratio m ++ " > " ++ to
-  status <- system "runghc -i.. -DMETHOD=3 -DTEST Test.hs --maximum-generated-tests=100" -- FIXME
+  status <- system "runghc -i.. -DMETHOD=3 -DTEST Test.hs --maximum-generated-tests=1000" -- FIXME
   case status of
       ExitSuccess -> return (True,(n,m))
       _           -> return (False,(n,m))
