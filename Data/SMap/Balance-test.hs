@@ -40,8 +40,8 @@ isSingle a b = not $ size b .<. size a
 deltaU,deltaD,ratioU,ratioD :: Int
 deltaU = 20
 deltaD = 10
-ratioU = 10
-ratioD = 10
+ratioU = 100
+ratioD = 100
 
 isBalanced :: Map k a -> Map k a -> Bool
 isBalanced a b = deltaU * x >= deltaD * y
