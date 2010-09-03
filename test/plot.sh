@@ -1,10 +1,11 @@
 #! /bin/sh
 
 gnuplot <<EOF
-set title "Weight balance search tree"
-set xlabel "weight"
+set title "Sized balance search tree"
+set xlabel "delta"
 set ylabel "ratio"
-set xrange [1:7]
+set nokey
+set xrange [2:5]
 set yrange [0.8:2.2]
 f1(x)=(x+1)/x
 f2(x)=x-1
