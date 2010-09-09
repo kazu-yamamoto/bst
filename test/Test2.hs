@@ -82,7 +82,7 @@ findLow' d = if isBal x y && isBal y x && isBal z w && isBal w z
     x = z + w + 1
     y = d + 1
     z = d
-    w = ceiling $ (fromIntegral (d + 2)) * r - fromIntegral d - 4
+    w = ceiling $ (fromIntegral (d + 2)) * r - fromIntegral d
     r :: Float
     r = fromIntegral ratioU / fromIntegral ratioD
     invd :: Float
