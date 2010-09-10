@@ -14,7 +14,7 @@ tests :: [Test]
 tests = [ testGroup "Test Case" [
                testCase "upper" test_upper
              , testCase "right" test_right
---             , testCase "lower" test_lower
+             , testCase "lower" test_lower
              , testCase "left" test_left
              ]
         ]
@@ -55,9 +55,11 @@ test_right = if deltaU < 45
 ----------------------------------------------------------------
 
 test_lower :: Assertion
-test_lower = do
-    unless (valid t) (error "test_lower")
-    valid (deleteMin t) @?= True
+test_lower = if deltaU * ratioU >= deltaU * ratioD + deltaD * ratioD
+             then True @?= True
+             else do
+                 unless (valid t) (error "test_lower")
+                 valid (deleteMin t) @?= True
   where
     (se,sz,sw,sy) = findLow
     e = makeTree se 0
@@ -70,33 +72,26 @@ findLow :: (Int,Int,Int,Int)
 findLow = fromJust . head . P.filter isJust . P.map findLow' $ [1..]
 
 findLow' :: Int -> Maybe (Int,Int,Int,Int)
-findLow' d = if largeEnough d && isBal x y && isBal y x && isBal z w && isBal w z
+findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w z
              then Just (e,z,w,y)
              else Nothing
   where
     x = z + w + 1
-    y = d + 1
-    z = d
-    w = ceiling $ (fromIntegral (d + 2)) * ratio - fromIntegral d
-    e = (ceiling $ fromIntegral (x + y + 2) * invDelta) - 1
+    y = (w + 1) * deltaU `div` deltaD
+    z = y - 1
+    e = (ceiling $ fromIntegral (x + y + 2) * invDelta) - 1 -- xxx
     
 largeEnough :: Int -> Bool
-largeEnough d = d' + 2 - delta * ((d' + 2) * ratio - d' + 2) > 0
-  where
-    d' = fromIntegral d
+largeEnough w = (w + 1) * deltaU `div` deltaD + w - (w + 1) * deltaU * ratioU `div` (deltaD * ratioD) > 0
 
 ----------------------------------------------------------------
 
 test_left :: Assertion
 test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
-             then do
-                 putStrLn "Hello"
-                 True @?= True
-             else do
-                 unless (valid t) (error "test_left")
-                 putStrLn $ showTree t
-                 putStrLn $ showTree (deleteMin t)
-                 valid (deleteMin t) @?= True
+            then True @?= True
+            else do
+                unless (valid t) (error "test_left")
+                valid (deleteMin t) @?= True
   where
     (sd,sx,sy) = findHigh
     d = makeTree sd 0
@@ -112,14 +107,14 @@ findHigh' x = if bigEnough x && isBal d e && isBal e d && isBal x y && isBal y x
               then Just (d,x,y)
               else Nothing
   where
-    y = floor $ (fromIntegral (x + 1)) * invRatio
-    d = floor $ (fromIntegral (x + y + 2)) * invDelta
+    y = (x + 1) * ratioD `div` ratioU
+    d = (x + y + 2) * deltaD `div` deltaU
     e = x + y + 1
     
 bigEnough :: Int -> Bool
-bigEnough x = (x' + (x' + 1) * invRatio + 1) * invDelta + x' - ((x' + 1) * invRatio + 1) * delta > 0
+bigEnough x = (((x + y + 2) * deltaD `div` deltaU + x + 1) - (y + 1) * deltaU `div` deltaD) > 0
   where
-    x' = fromIntegral x
+    y = (x + 1) * ratioD `div` ratioU
 
 ----------------------------------------------------------------
 
