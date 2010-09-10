@@ -94,13 +94,15 @@ test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
                  True @?= True
              else do
                  unless (valid t) (error "test_left")
+                 putStrLn $ showTree t
+                 putStrLn $ showTree (deleteMin t)
                  valid (deleteMin t) @?= True
   where
     (sd,sx,sy) = findHigh
     d = makeTree sd 0
     x = makeTree sx 2000
     y = makeTree sy 4000
-    t = (nd 1000 d (nd 3000 x y))
+    t = nd 1000 d (nd 3000 x y)
 
 findHigh :: (Int,Int,Int)
 findHigh = fromJust . head . P.filter isJust . P.map findHigh' $ [1..]
