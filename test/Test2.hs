@@ -56,13 +56,8 @@ test_right = if deltaU < 45
 
 test_lower :: Assertion
 test_lower = do
-    putStrLn $ "(" ++ show deltaU ++ "," ++ show ratioU ++ ")"
-    print (se,sz,sw,sy)
-    putStrLn $ showTree t
     unless (valid t) (error "test_lower")
-    let t' = deleteMin t
-    putStrLn $ showTree t'
-    valid t' @?= True
+    valid (deleteMin t) @?= True
   where
     (se,sz,sw,sy) = findLow
     e = makeTree se 0
@@ -75,25 +70,28 @@ findLow :: (Int,Int,Int,Int)
 findLow = fromJust . head . P.filter isJust . P.map findLow' $ [1..]
 
 findLow' :: Int -> Maybe (Int,Int,Int,Int)
-findLow' d = if isBal x y && isBal y x && isBal z w && isBal w z
+findLow' d = if largeEnough d && isBal x y && isBal y x && isBal z w && isBal w z
              then Just (e,z,w,y)
              else Nothing
   where
     x = z + w + 1
     y = d + 1
     z = d
-    w = ceiling $ (fromIntegral (d + 2)) * r - fromIntegral d
-    r :: Float
-    r = fromIntegral ratioU / fromIntegral ratioD
-    invd :: Float
-    invd = fromIntegral deltaD / fromIntegral deltaU
-    e = (ceiling $ fromIntegral (x + y + 2) * invd) - 1
+    w = ceiling $ (fromIntegral (d + 2)) * ratio - fromIntegral d
+    e = (ceiling $ fromIntegral (x + y + 2) * invDelta) - 1
+    
+largeEnough :: Int -> Bool
+largeEnough d = d' + 2 - delta * ((d' + 2) * ratio - d' + 2) > 0
+  where
+    d' = fromIntegral d
 
 ----------------------------------------------------------------
 
 test_left :: Assertion
-test_left = if deltaU >= 33
-             then True @?= True
+test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
+             then do
+                 putStrLn "Hello"
+                 True @?= True
              else do
                  unless (valid t) (error "test_left")
                  valid (deleteMin t) @?= True
@@ -108,17 +106,18 @@ findHigh :: (Int,Int,Int)
 findHigh = fromJust . head . P.filter isJust . P.map findHigh' $ [1..]
 
 findHigh' :: Int -> Maybe (Int,Int,Int)
-findHigh' x = if isBal d e && isBal e d && isBal x y && isBal y x
-           then Just (d,x,y)
-           else Nothing
+findHigh' x = if bigEnough x && isBal d e && isBal e d && isBal x y && isBal y x
+              then Just (d,x,y)
+              else Nothing
   where
-    y = floor $ (fromIntegral (x + 1)) * invr
-    d = floor $ (fromIntegral (x + y + 2)) * invd
+    y = floor $ (fromIntegral (x + 1)) * invRatio
+    d = floor $ (fromIntegral (x + y + 2)) * invDelta
     e = x + y + 1
-    invr :: Float
-    invr = fromIntegral ratioD / fromIntegral ratioU
-    invd :: Float
-    invd = fromIntegral deltaD / fromIntegral deltaU
+    
+bigEnough :: Int -> Bool
+bigEnough x = (x' + (x' + 1) * invRatio + 1) * invDelta + x' - ((x' + 1) * invRatio + 1) * delta > 0
+  where
+    x' = fromIntegral x
 
 ----------------------------------------------------------------
 
@@ -139,3 +138,16 @@ isBal a b = deltaU * x >= deltaD * y
     x = a + 1
     y = b + 1
 
+----------------------------------------------------------------
+
+ratio    :: Float
+ratio    = fromIntegral ratioU / fromIntegral ratioD
+
+invRatio :: Float
+invRatio = fromIntegral ratioD / fromIntegral ratioU
+
+delta    :: Float
+delta    = fromIntegral deltaU / fromIntegral deltaD
+
+invDelta :: Float
+invDelta = fromIntegral deltaD / fromIntegral deltaU

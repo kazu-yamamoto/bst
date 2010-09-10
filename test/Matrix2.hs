@@ -5,7 +5,7 @@ import System.Process
 
 main :: IO ()
 main = do
-    results <- mapM test [(x,y) | x <- [20..50], y <- [100,105..215]] -- FIXME
+    results <- mapM test [(x,y) | x <- [20..50], y <- [100,105..220]] -- FIXME
     let res = (concatMap toString . map toRes . filter ok $ results)
            ++ "\n"
            ++ (concatMap toString . map toRes . filter ng $ results)
