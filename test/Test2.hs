@@ -72,7 +72,7 @@ findLow :: (Int,Int,Int,Int)
 findLow = fromJust . head . P.filter isJust . P.map findLow' $ [1..]
 
 findLow' :: Int -> Maybe (Int,Int,Int,Int)
-findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w z
+findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w z && isDouble x y
              then Just (e,z,w,y)
              else Nothing
   where
@@ -134,6 +134,12 @@ isBal a b = deltaU * x >= deltaD * y
   where
     x = a + 1
     y = b + 1
+
+isDouble :: Int -> Int -> Bool
+isDouble a b = ratioD * z >= ratioU * w
+  where
+    z = a + 1
+    w = b + 1
 
 ----------------------------------------------------------------
 
