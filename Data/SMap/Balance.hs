@@ -37,21 +37,23 @@ isSingle a b = not $ size b .<. size a
 #else
 ----------------------------------------------------------------
 -- Adams
-delta,ratio :: Int
-delta = 4
-ratio = 2
+deltaU,deltaD,ratioU,ratioD :: Int
+deltaU = 50
+deltaD = 10
+ratioU = 220
+ratioD = 100
 
 isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = x + y <= 1 || delta * x >= y
+isBalanced a b = deltaU * x >= deltaD * y
   where
-    x = size a
-    y = size b
+    x = size a + 1
+    y = size b + 1
 
 isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = z < ratio * w
+isSingle a b = ratioD * z < ratioU * w
   where
-    z = size a
-    w = size b
+    z = size a + 1
+    w = size b + 1
 ----------------------------------------------------------------
 #endif
 
@@ -78,13 +80,21 @@ rotateL :: a -> b -> Map a b -> Map a b -> Map a b
 rotateL k x l r@(Bin _ _ _ rl rr)
   | isSingle rl rr = singleL k x l r
   | otherwise      = doubleL k x l r
-rotateL _ _ _ _         = error "rotateL"
+#ifdef TEST
+rotateL k x l r    = singleL k x l r
+#else
+rotateL _ _ _ _    = error "rotateL"
+#endif
 
 rotateR :: a -> b -> Map a b -> Map a b -> Map a b
 rotateR k x l@(Bin _ _ _ ll lr) r
   | isSingle lr ll = singleR k x l r
   | otherwise      = doubleR k x l r
-rotateR _ _ _ _         = error "rotateR"
+#ifdef TEST
+rotateR k x l r    = singleR k x l r
+#else
+rotateR _ _ _ _    = error "rotateR"
+#endif
 
 ----------------------------------------------------------------
 

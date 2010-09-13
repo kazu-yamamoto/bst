@@ -15,10 +15,10 @@ tests = [ testGroup "Test Case" [
                testCase "upper" test_upper
              , testCase "right" test_right
              , testCase "lower" test_lower
-             , testCase "left" test_left
+             , testCase "left"  test_left
              ]
         ]
-        
+
 main :: IO ()
 main = defaultMain tests
 
@@ -79,8 +79,11 @@ findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w 
     x = z + w + 1
     y = (w + 1) * deltaU `div` deltaD
     z = y - 1
-    e = (ceiling $ fromIntegral (x + y + 2) * invDelta) - 1 -- xxx
-    
+    e = if just then q + 1 else q
+    r = x + y + 1
+    q = (r + 1) * deltaD `div` deltaU
+    just = (r + 1) * deltaD `mod` deltaU == 0
+
 largeEnough :: Int -> Bool
 largeEnough w = (a + w + 1) * ratioD >= (a + 1) * ratioU
   where
@@ -112,7 +115,7 @@ findHigh' x = if bigEnough x && isBal d e && isBal e d && isBal x y && isBal y x
     y = (x + 1) * ratioD `div` ratioU
     d = (x + y + 2) * deltaD `div` deltaU
     e = x + y + 1
-    
+
 bigEnough :: Int -> Bool
 bigEnough x = (((x + y + 2) * deltaD `div` deltaU + x + 1) - (y + 1) * deltaU `div` deltaD) > 0
   where
@@ -137,22 +140,4 @@ isBal a b = deltaU * x >= deltaD * y
     x = a + 1
     y = b + 1
 
-isDouble :: Int -> Int -> Bool
-isDouble a b = ratioD * z >= ratioU * w
-  where
-    z = a + 1
-    w = b + 1
-
 ----------------------------------------------------------------
-
-ratio    :: Float
-ratio    = fromIntegral ratioU / fromIntegral ratioD
-
-invRatio :: Float
-invRatio = fromIntegral ratioD / fromIntegral ratioU
-
-delta    :: Float
-delta    = fromIntegral deltaU / fromIntegral deltaD
-
-invDelta :: Float
-invDelta = fromIntegral deltaD / fromIntegral deltaU
