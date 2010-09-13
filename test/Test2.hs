@@ -79,7 +79,7 @@ findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w 
     x = z + w + 1
     y = (w + 1) * deltaU `div` deltaD
     z = y - 1
-    e = if just then q + 1 else q
+    e = if just then q - 1 else q  -- need to - 1
     r = x + y + 1
     q = (r + 1) * deltaD `div` deltaU
     just = (r + 1) * deltaD `mod` deltaU == 0
