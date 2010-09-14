@@ -1737,11 +1737,8 @@ readPair s = do (a, ct1)    <- reads s
   Show
 --------------------------------------------------------------------}
 instance (Show k, Show a) => Show (Map k a) where
-    show = showTree
-    {-
   showsPrec d m  = showParen (d > 10) $
     showString "fromList " . shows (toList m)
--}
 
 {-
 XXX unused code
