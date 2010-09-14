@@ -37,23 +37,21 @@ isSingle a b = not $ size b .<. size a
 #else
 ----------------------------------------------------------------
 -- Adams
-deltaU,deltaD,ratioU,ratioD :: Int
-deltaU = 50
-deltaD = 10
-ratioU = 220
-ratioD = 100
+delta,ratio :: Int
+delta = 4
+ratio = 2
 
 isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = deltaU * x >= deltaD * y
+isBalanced a b = x + y <= 1 || delta * x >= y
   where
-    x = size a + 1
-    y = size b + 1
+    x = size a
+    y = size b
 
 isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = ratioD * z < ratioU * w
+isSingle a b = z < ratio * w
   where
-    z = size a + 1
-    w = size b + 1
+    z = size a
+    w = size b
 ----------------------------------------------------------------
 #endif
 
