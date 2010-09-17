@@ -175,4 +175,5 @@ module Data.SMap  (
 
 import Prelude ()
 import Data.SMap.Types
+import Data.SMap.Balance
 import Data.SMap.Internal
