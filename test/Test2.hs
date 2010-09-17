@@ -33,11 +33,11 @@ test_upper = do
           unless (valid t) (error "test_upper")
           valid (deleteMin t) @?= True
   where
-    sizeX = (deltaU `div` 10) - 1
-    x = makeTree sizeX 10
-    sizeY = ((deltaU - 5) `div` 10) - 1
-    y = makeTree sizeY 101
-    t = nd 2 (sg 1) (nd 100 (nd 3 Tip x) y)
+    x = (deltaU `div` 10) - 1
+    tx = makeTree x 10
+    y = ((deltaU - 5) `div` 10) - 1
+    ty = makeTree y 101
+    t = nd 2 (sg 1) (nd 100 (nd 3 Tip tx) ty)
 
 ----------------------------------------------------------------
 
@@ -48,9 +48,9 @@ test_right = if deltaU < 45
                  unless (valid t) (error "test_right")
                  valid (deleteMin t) @?= True
   where
-    sizeX = (deltaU `div` 5) - 5
-    x = makeTree sizeX 10
-    t = nd 2 (sg 1) (nd 1000 (nd 100 x (sg 101)) (sg 1001))
+    x = (deltaU `div` 5) - 5
+    tx = makeTree x 10
+    t = nd 2 (sg 1) (nd 1000 (nd 100 tx (sg 101)) (sg 1001))
 
 ----------------------------------------------------------------
 
@@ -61,33 +61,33 @@ test_lower = if deltaU * ratioU >= deltaU * ratioD + deltaD * ratioD
                  unless (valid t) (error "test_lower")
                  valid (deleteMin t) @?= True
   where
-    (se,sz,sw,sy) = findLow
-    e = makeTree se 0
-    z = makeTree sz 2000
-    w = makeTree sw 4000
-    y = makeTree sy 6000
-    t = nd 1000 e (nd 5000 (nd 3000 z w) y)
+    (x,y,z,w) = findLow
+    tx = makeTree x 0
+    ty = makeTree y 2000
+    tz = makeTree z 4000
+    tw = makeTree w 6000
+    t = nd 1000 tx (nd 5000 (nd 3000 ty tz) tw)
 
 findLow :: (Int,Int,Int,Int)
 findLow = fromJust . head . P.filter isJust . P.map findLow' $ [1..]
 
 findLow' :: Int -> Maybe (Int,Int,Int,Int)
-findLow' w = if largeEnough w && isBal x y && isBal y x && isBal z w && isBal w z
-             then Just (e,z,w,y)
+findLow' z = if largeEnough z && isBal rl w && isBal w rl && isBal y z && isBal z y
+             then Just (x,y,z,w)
              else Nothing
   where
-    x = z + w + 1
-    y = (w + 1) * deltaU `div` deltaD
-    z = y - 1
-    e = if just then q - 1 else q  -- need to - 1
-    r = x + y + 1
+    w = (z + 1) * deltaU `div` deltaD
+    y = w - 1
+    r = y + z + w + 2
+    x = (if just then q else q + 1) - 1
     q = (r + 1) * deltaD `div` deltaU
     just = (r + 1) * deltaD `mod` deltaU == 0
+    rl = y + z + 1    
 
 largeEnough :: Int -> Bool
-largeEnough w = (a + w + 1) * ratioD >= (a + 1) * ratioU
+largeEnough z = (w + z + 1) * ratioD >= (w + 1) * ratioU
   where
-    a = (w + 1) * deltaU `div` deltaD
+    w = (z + 1) * deltaU `div` deltaD
 
 ----------------------------------------------------------------
 
@@ -98,11 +98,11 @@ test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
                 unless (valid t) (error "test_left")
                 valid (deleteMin t) @?= True
   where
-    (sx,sy,sz) = findHigh
-    x = makeTree sx 0
-    y = makeTree sy 2000
-    z = makeTree sz 4000
-    t = nd 1000 x (nd 3000 z y)
+    (x,y,z) = findHigh
+    tx = makeTree x 0
+    ty = makeTree y 2000
+    tz = makeTree z 4000
+    t = nd 1000 tx (nd 3000 tz ty)
 
 findHigh :: (Int,Int,Int)
 findHigh = fromJust . head . P.filter isJust . P.map findHigh' $ [1..]
