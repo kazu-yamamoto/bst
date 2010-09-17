@@ -98,28 +98,28 @@ test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
                 unless (valid t) (error "test_left")
                 valid (deleteMin t) @?= True
   where
-    (sd,sx,sy) = findHigh
-    d = makeTree sd 0
-    x = makeTree sx 2000
-    y = makeTree sy 4000
-    t = nd 1000 d (nd 3000 x y)
+    (sx,sy,sz) = findHigh
+    x = makeTree sx 0
+    y = makeTree sy 2000
+    z = makeTree sz 4000
+    t = nd 1000 x (nd 3000 z y)
 
 findHigh :: (Int,Int,Int)
 findHigh = fromJust . head . P.filter isJust . P.map findHigh' $ [1..]
 
 findHigh' :: Int -> Maybe (Int,Int,Int)
-findHigh' x = if bigEnough x && isBal d e && isBal e d && isBal x y && isBal y x
-              then Just (d,x,y)
+findHigh' y = if bigEnough y && isBal x r && isBal r x && isBal y z && isBal z y
+              then Just (x,y,z)
               else Nothing
   where
-    y = (x + 1) * ratioD `div` ratioU
-    d = (x + y + 2) * deltaD `div` deltaU
-    e = x + y + 1
+    z = (y + 1) * ratioD `div` ratioU
+    x = (y + z + 2) * deltaD `div` deltaU
+    r = y + z + 1
 
 bigEnough :: Int -> Bool
-bigEnough x = (((x + y + 2) * deltaD `div` deltaU + x + 1) - (y + 1) * deltaU `div` deltaD) > 0
+bigEnough y = (((y + z + 2) * deltaD `div` deltaU + y + 1) - (z + 1) * deltaU `div` deltaD) > 0
   where
-    y = (x + 1) * ratioD `div` ratioU
+    z = (y + 1) * ratioD `div` ratioU
 
 ----------------------------------------------------------------
 
