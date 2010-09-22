@@ -9,10 +9,11 @@ import Data.Bits ((.&.), shiftR, shiftL)
 ----------------------------------------------------------------
 -- Nievergelt
 isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = 2 * y * y <= (x + y) * (x + y)
+isBalanced a b = 2 * y * y <= z * z
   where
     x = size a + 1
     y = size b + 1
+    z = x + y
 
 isSingle :: Map k a -> Map k a -> Bool
 isSingle a b = z * z < 2 * w * w
