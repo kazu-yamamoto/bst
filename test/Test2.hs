@@ -48,9 +48,11 @@ test_right = if deltaU < 45
                  unless (valid t) (error "test_right")
                  valid (deleteMin t) @?= True
   where
-    x = (deltaU `div` 5) - 5
+    x = deltaU `div` deltaD
     tx = makeTree x 10
-    t = nd 2 (sg 1) (nd 1000 (nd 100 tx (sg 101)) (sg 1001))
+    y = 2 * deltaU `div` deltaD - deltaU `div` deltaD - 4
+    ty = makeTree y 3000
+    t = nd 2 (sg 1) (nd 2000 (nd 1000 tx (sg 1001)) ty)
 
 ----------------------------------------------------------------
 
@@ -61,18 +63,18 @@ test_lower = if deltaU * ratioU >= deltaU * ratioD + deltaD * ratioD
                  unless (valid t) (error "test_lower")
                  valid (deleteMin t) @?= True
   where
-    (x,y,z,w) = findLow
+    (x,y,z,w) = findLower
     tx = makeTree x 0
     ty = makeTree y 2000
     tz = makeTree z 4000
     tw = makeTree w 6000
     t = nd 1000 tx (nd 5000 (nd 3000 ty tz) tw)
 
-findLow :: (Int,Int,Int,Int)
-findLow = fromJust . head . P.filter isJust . P.map findLow' $ [1..]
+findLower :: (Int,Int,Int,Int)
+findLower = fromJust . head . P.filter isJust . P.map findLower' $ [1..]
 
-findLow' :: Int -> Maybe (Int,Int,Int,Int)
-findLow' z = if largeEnough z && isBal rl w && isBal w rl && isBal y z && isBal z y
+findLower' :: Int -> Maybe (Int,Int,Int,Int)
+findLower' z = if largeEnough z
              then Just (x,y,z,w)
              else Nothing
   where
@@ -82,7 +84,6 @@ findLow' z = if largeEnough z && isBal rl w && isBal w rl && isBal y z && isBal 
     x = (if just then q else q + 1) - 1
     q = (r + 1) * deltaD `div` deltaU
     just = (r + 1) * deltaD `mod` deltaU == 0
-    rl = y + z + 1    
 
 largeEnough :: Int -> Bool
 largeEnough z = (w + z + 1) * ratioD >= (w + 1) * ratioU
@@ -98,23 +99,22 @@ test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
                 unless (valid t) (error "test_left")
                 valid (deleteMin t) @?= True
   where
-    (x,y,z) = findHigh
+    (x,y,z) = findLeft
     tx = makeTree x 0
     ty = makeTree y 2000
     tz = makeTree z 4000
     t = nd 1000 tx (nd 3000 tz ty)
 
-findHigh :: (Int,Int,Int)
-findHigh = fromJust . head . P.filter isJust . P.map findHigh' $ [1..]
+findLeft :: (Int,Int,Int)
+findLeft = fromJust . head . P.filter isJust . P.map findLeft' $ [1..]
 
-findHigh' :: Int -> Maybe (Int,Int,Int)
-findHigh' y = if bigEnough y && isBal x r && isBal r x && isBal y z && isBal z y
+findLeft' :: Int -> Maybe (Int,Int,Int)
+findLeft' y = if bigEnough y
               then Just (x,y,z)
               else Nothing
   where
     z = (y + 1) * ratioD `div` ratioU
     x = (y + z + 2) * deltaD `div` deltaU
-    r = y + z + 1
 
 bigEnough :: Int -> Bool
 bigEnough y = (((y + z + 2) * deltaD `div` deltaU + y + 1) - (z + 1) * deltaU `div` deltaD) > 0
@@ -133,11 +133,5 @@ nd k l r = Bin sz k () l r
 
 sg :: Int -> Map Int ()
 sg k = singleton k ()
-
-isBal :: Int -> Int -> Bool
-isBal a b = deltaU * x >= deltaD * y
-  where
-    x = a + 1
-    y = b + 1
 
 ----------------------------------------------------------------
