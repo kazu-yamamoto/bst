@@ -12,10 +12,10 @@ import Prelude as P
 
 tests :: [Test]
 tests = [ testGroup "Test Case" [
-               testCase "upper" test_upper
-             , testCase "right" test_right
-             , testCase "lower" test_lower
+               testCase "right" test_right
              , testCase "left"  test_left
+             , testCase "lower" test_lower
+             , testCase "upper" test_upper
              ]
         ]
 
@@ -24,35 +24,47 @@ main = defaultMain tests
 
 ----------------------------------------------------------------
 
-test_upper :: Assertion
-test_upper = do
+test_right :: Assertion
+test_right = do 
     putStrLn $ "(" ++ show deltaU ++ "," ++ show ratioU ++ ")"
-    if deltaU < 25
+    if deltaU < 45
         then True @?= True
         else do
-          unless (valid t) (error "test_upper")
-          valid (deleteMin t) @?= True
+            unless (valid t) (error "test_right")
+            valid (deleteMin t) @?= True
   where
-    x = (deltaU `div` 10) - 1
+    x = flor 1 deltaU deltaD
     tx = makeTree x 10
-    y = ((deltaU - 5) `div` 10) - 1
-    ty = makeTree y 101
-    t = nd 2 (sg 1) (nd 100 (nd 3 Tip tx) ty)
+    y = flor 2 deltaU deltaD - flor 1 deltaU deltaD - 4
+    ty = makeTree y 3000
+    t = nd 2 (sg 1) (nd 2000 (nd 1000 tx (sg 1001)) ty)
 
 ----------------------------------------------------------------
 
-test_right :: Assertion
-test_right = if deltaU < 45
-             then True @?= True
-             else do
-                 unless (valid t) (error "test_right")
-                 valid (deleteMin t) @?= True
+test_left :: Assertion
+test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
+            then True @?= True
+            else do
+                unless (valid t) (error "test_left")
+                valid (deleteMin t) @?= True
   where
-    x = deltaU `div` deltaD
-    tx = makeTree x 10
-    y = 2 * deltaU `div` deltaD - deltaU `div` deltaD - 4
-    ty = makeTree y 3000
-    t = nd 2 (sg 1) (nd 2000 (nd 1000 tx (sg 1001)) ty)
+    (x,y,z) = findLeft
+    tx = makeTree x 0
+    ty = makeTree y 2000
+    tz = makeTree z 4000
+    t = nd 1000 tx (nd 3000 tz ty)
+
+findLeft :: (Int,Int,Int)
+findLeft = fromJust . head . P.filter isJust . P.map findLeft' $ [1..]
+
+findLeft' :: Int -> Maybe (Int,Int,Int)
+findLeft' y = if largeEnough
+              then Just (x,y,z)
+              else Nothing
+  where
+    z = flor (y + 1) ratioD ratioU
+    x = ceil (y + z + 2) deltaD deltaU - 1
+    largeEnough = deltaU * (z+1) - deltaD * (x + y + 1) < 0
 
 ----------------------------------------------------------------
 
@@ -74,52 +86,30 @@ findLower :: (Int,Int,Int,Int)
 findLower = fromJust . head . P.filter isJust . P.map findLower' $ [1..]
 
 findLower' :: Int -> Maybe (Int,Int,Int,Int)
-findLower' z = if largeEnough z
-             then Just (x,y,z,w)
-             else Nothing
+findLower' z = if largeEnough
+               then Just (x,y,z,w)
+               else Nothing
   where
-    w = (z + 1) * deltaU `div` deltaD
+    w = flor (z + 1) deltaU deltaD
     y = w - 1
     r = y + z + w + 2
-    x = (if just then q else q + 1) - 1
-    q = (r + 1) * deltaD `div` deltaU
-    just = (r + 1) * deltaD `mod` deltaU == 0
-
-largeEnough :: Int -> Bool
-largeEnough z = (w + z + 1) * ratioD >= (w + 1) * ratioU
-  where
-    w = (z + 1) * deltaU `div` deltaD
+    x = ceil (r + 1) deltaD deltaU - 1
+    largeEnough = ratioU * (w + 1)  - ratioD * (y + z + 2) < 0 -- xxx equal
 
 ----------------------------------------------------------------
 
-test_left :: Assertion
-test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
-            then True @?= True
-            else do
-                unless (valid t) (error "test_left")
-                valid (deleteMin t) @?= True
+test_upper :: Assertion
+test_upper = if deltaU < 25
+             then True @?= True
+             else do
+                 unless (valid t) (error "test_upper")
+                 valid (deleteMin t) @?= True
   where
-    (x,y,z) = findLeft
-    tx = makeTree x 0
-    ty = makeTree y 2000
-    tz = makeTree z 4000
-    t = nd 1000 tx (nd 3000 tz ty)
-
-findLeft :: (Int,Int,Int)
-findLeft = fromJust . head . P.filter isJust . P.map findLeft' $ [1..]
-
-findLeft' :: Int -> Maybe (Int,Int,Int)
-findLeft' y = if bigEnough y
-              then Just (x,y,z)
-              else Nothing
-  where
-    z = (y + 1) * ratioD `div` ratioU
-    x = (y + z + 2) * deltaD `div` deltaU
-
-bigEnough :: Int -> Bool
-bigEnough y = (((y + z + 2) * deltaD `div` deltaU + y + 1) - (z + 1) * deltaU `div` deltaD) > 0
-  where
-    z = (y + 1) * ratioD `div` ratioU
+    x = flor 1 deltaU deltaD - 1
+    tx = makeTree x 10
+    y = flor 1 (deltaU - 5) deltaD - 1 -- 5 is hard coding
+    ty = makeTree y 101
+    t = nd 2 (sg 1) (nd 100 (nd 3 Tip tx) ty)
 
 ----------------------------------------------------------------
 
@@ -133,5 +123,14 @@ nd k l r = Bin sz k () l r
 
 sg :: Int -> Map Int ()
 sg k = singleton k ()
+
+flor :: Int -> Int -> Int -> Int
+flor c u d = c * u `div` d
+
+ceil :: Int -> Int -> Int -> Int
+ceil c u d = if r == 0 then q else q + 1
+  where
+    q = c * u `div` d
+    r = c * u `mod` d
 
 ----------------------------------------------------------------
