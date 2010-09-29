@@ -124,7 +124,6 @@ tests = [ testGroup "Test Case" [
              , testProperty "insert"               prop_insert
              , testProperty "insert then lookup"   prop_lookup
              , testProperty "insert then delete"   prop_insertDelete
-             , testProperty "insert then delete2"  prop_insertDelete2
              , testProperty "delete non member"    prop_deleteNonMember
              , testProperty "deleteMin"            prop_deleteMin
              , testProperty "deleteMin2"           prop_deleteMin2
@@ -703,9 +702,6 @@ prop_lookup k t = lookup k (insert k () t) /= Nothing
 
 prop_insertDelete :: Int -> UMap -> Bool
 prop_insertDelete k t = valid $ delete k (insert k () t)
-
-prop_insertDelete2 :: Int -> UMap -> Property
-prop_insertDelete2 k t = (lookup k t == Nothing) ==> (delete k (insert k () t) == t)
 
 prop_deleteNonMember :: Int -> UMap -> Property
 prop_deleteNonMember k t = (lookup k t == Nothing) ==> (delete k t == t)
