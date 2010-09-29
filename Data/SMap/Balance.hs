@@ -100,18 +100,24 @@ rotateR _ _ _ _    = error "rotateR"
 join :: Ord k => k -> a -> Map k a -> Map k a -> Map k a
 join kx x Tip r  = insertMin kx x r
 join kx x l Tip  = insertMax kx x l
-join kx x l@(Bin sizeL ky y ly ry) r@(Bin sizeR kz z lz rz)
-  | isBalanced l r && isBalanced r l = bin kx x l r
-  | isBalanced l r                   = balanceL ky y ly (join kx x ry r)
-  | otherwise                        = balanceR kz z (join kx x l lz) rz
+join kx x l@(Bin _ ky y ly ry) r@(Bin _ kz z lz rz)
+  | bal1 && bal2 = bin kx x l r
+  | bal1         = balanceL ky y ly (join kx x ry r)
+  | otherwise    = balanceR kz z (join kx x l lz) rz
+  where
+    bal1 = isBalanced l r
+    bal2 = isBalanced r l
 
 merge :: Map k a -> Map k a -> Map k a
 merge Tip r   = r
 merge l Tip   = l
-merge l@(Bin sizeL kx x lx rx) r@(Bin sizeR ky y ly ry)
-  | isBalanced l r && isBalanced r l = glue l r
-  | isBalanced l r                   = balanceL kx x lx (merge rx r)
-  | otherwise                        = balanceR ky y (merge l ly) ry
+merge l@(Bin _ kx x lx rx) r@(Bin _ ky y ly ry)
+  | bal1 && bal2 = glue l r
+  | bal1         = balanceL kx x lx (merge rx r)
+  | otherwise    = balanceR ky y (merge l ly) ry
+  where
+    bal1 = isBalanced l r
+    bal2 = isBalanced r l
 
 ----------------------------------------------------------------
 
