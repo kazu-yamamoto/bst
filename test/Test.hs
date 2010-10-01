@@ -4,7 +4,7 @@ module Main where
 
 import Control.Applicative ((<$>),(<*>))
 import Data.List (nub,sort)
-import qualified Data.List as L ((\\),intersect)
+import qualified Data.List as L ((\\),intersect,union)
 import qualified Data.Set
 import Data.SMap.Types
 import Data.SMap.Balance
@@ -120,6 +120,7 @@ tests = [ testGroup "Test Case" [
              ]
         , testGroup "Property Test" [
                testProperty "fromList"             prop_fromList
+             , testProperty "toList"               prop_toList
              , testProperty "insert to singleton"  prop_singleton
              , testProperty "insert"               prop_insert
              , testProperty "insert then lookup"   prop_lookup
@@ -691,6 +692,12 @@ test_valid = do
 prop_fromList :: UMap -> Bool
 prop_fromList t = valid t
 
+prop_toList :: [(Int)] -> Bool
+prop_toList ns = (toList . fromList $ al) == al
+  where
+    xs = nub . sort $ ns
+    al = zip xs xs
+
 prop_singleton :: Int -> Int -> Bool
 prop_singleton k x = insert k x empty == singleton k x
 
@@ -735,9 +742,13 @@ prop_deleteAll t = and $ [ valid (delete k t) | (k,_) <- toList t ]
 
 ----------------------------------------------------------------
 
-prop_split :: Int -> UMap -> Property
-prop_split k t = (lookup k t /= Nothing) ==> let (r,l) = split k t
-                                             in (valid r, valid l) == (True, True)
+prop_split :: [Int] -> Bool
+prop_split xs = valid r && valid l
+  where
+    t = fromList (zip xs xs)
+    sz = size t `div` 2
+    k = head . drop sz $ xs
+    (r,l) = split k t
 
 prop_join :: Int -> UMap -> Bool
 prop_join k t = let (l,r) = split k t
@@ -752,16 +763,27 @@ prop_merge k t = let (l,r) = split k t
 prop_union :: UMap -> UMap -> Bool
 prop_union t1 t2 = valid (union t1 t2)
 
-prop_unionModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
+prop_unionModel :: [Int] -> [Int] -> Bool
 prop_unionModel xs ys
-  = sort (keys (union (fromList xs) (fromList ys)))
-    == sort (nub (P.map fst xs ++ P.map fst ys))
+  = (sort . toList $ union (fromList al1) (fromList al2))
+    == sort (nub (L.union al1 al2))
+  where
+    xs' = nub . sort $ xs
+    ys' = nub . sort $ ys
+    al1 = zip xs' xs'
+    al2 = zip ys' ys'
 
-prop_unionSingleton :: IMap -> Int -> Int -> Bool
-prop_unionSingleton t k x = union (singleton k x) t == insert k x t
+prop_unionSingleton :: IMap -> Int -> Int -> Property
+prop_unionSingleton t k x = (lookup k t == Nothing) ==> uni == ins
+  where
+    uni = sort . toList $ union (singleton k x) t
+    ins = sort . toList $ insert k x t
 
 prop_unionAssoc :: IMap -> IMap -> IMap -> Bool
-prop_unionAssoc t1 t2 t3 = union t1 (union t2 t3) == union (union t1 t2) t3
+prop_unionAssoc t1 t2 t3 = left == right
+  where
+    left  = sort . toList $ union t1 (union t2 t3)
+    right = sort . toList $ union (union t1 t2) t3
 
 prop_unionWith :: IMap -> IMap -> Bool
 prop_unionWith t1 t2 = (union t1 t2 == unionWith (\_ y -> y) t2 t1)
@@ -779,16 +801,26 @@ prop_difference t1 t2 = valid (difference t1 t2)
 
 prop_differenceModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
 prop_differenceModel xs ys
-  = sort (keys (difference (fromListWith (+) xs) (fromListWith (+) ys)))
-    == sort ((L.\\) (nub (P.map fst xs)) (nub (P.map fst ys)))
+  = (sort . toList) (fromList al1 \\ fromList al2)
+    == (sort . nub) (al1 L.\\ al2)
+  where
+    xs' = nub . sort $ xs
+    ys' = nub . sort $ ys
+    al1 = zip xs' xs'
+    al2 = zip ys' ys'
 
 prop_intersection :: IMap -> IMap -> Bool
 prop_intersection t1 t2 = valid (intersection t1 t2)
 
-prop_intersectionModel :: [(Int,Int)] -> [(Int,Int)] -> Bool
+prop_intersectionModel :: [Int] -> [Int] -> Bool
 prop_intersectionModel xs ys
-  = sort (keys (intersection (fromListWith (+) xs) (fromListWith (+) ys)))
-    == sort (nub ((L.intersect) (P.map fst xs) (P.map fst ys)))
+  = (sort . toList $ intersection (fromList al1) (fromList al2))
+    == sort (nub (L.intersect al1 al2))
+  where
+    xs' = nub . sort $ xs
+    ys' = nub . sort $ ys
+    al1 = zip xs' xs'
+    al2 = zip ys' ys'
 
 ----------------------------------------------------------------
 
