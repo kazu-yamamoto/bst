@@ -4,7 +4,7 @@
 - Roura (METHOD=2)
 - Adams (4,2) (METHOD=3) -- this is the default code
 - Adams (3,2) (METHOD=4)
-- Adams <3,2> (METHOD=5)
+- Nievergelt & Reingold <3,2> (METHOD=5)
 
 # Tests with HUnit and QuickCheck
 
