@@ -5,7 +5,45 @@ module Data.SMap.Balance where
 import Data.SMap.Types
 import Data.Bits ((.&.), shiftR, shiftL)
 
-#if METHOD == 1
+#if METHOD == 4
+----------------------------------------------------------------    
+-- Adams
+delta,ratio :: Int
+delta = 3
+ratio = 2
+
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = x + y <= 1 || delta * x >= y
+  where
+    x = size a
+    y = size b
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = z < ratio * w
+  where
+    z = size a
+    w = size b
+----------------------------------------------------------------
+#elif METHOD == 5
+----------------------------------------------------------------    
+-- Adams
+delta,ratio :: Int
+delta = 3
+ratio = 2
+
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = delta * x >= y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = z < ratio * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 1
 ----------------------------------------------------------------
 -- Nievergelt
 isBalanced :: Map k a -> Map k a -> Bool
