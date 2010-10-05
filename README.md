@@ -1,8 +1,10 @@
 # Sized binary search tree
 
-- Nievergelt (METHOD=1)
+- Nievergelt & Reingold <1+sqrt 2,sqrt2> (METHOD=1)
 - Roura (METHOD=2)
-- Adams (METHOD=3)
+- Adams (4,2) (METHOD=3) -- this is the default code
+- Adams (3,2) (METHOD=4)
+- Adams <3,2> (METHOD=5)
 
 # Tests with HUnit and QuickCheck
 
