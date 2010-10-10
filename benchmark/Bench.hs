@@ -55,8 +55,7 @@ main = do
            , bench "lok r10^5" $ nf (map (look s3)) r3
            ]
 
-instance (NFData k, NFData a) => NFData (Data.SMap.Map k a) where
-    rnf = rnf . Data.SMap.toList
+instance (NFData k, NFData a) => NFData (Data.SMap.Map k a)
 
 del :: Map Key Val -> Key -> Map Key Val
 del = flip delete
