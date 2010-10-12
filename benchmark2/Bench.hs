@@ -27,12 +27,18 @@ main = do
         !x1 = zip l1 (repeat ())
         !x2 = zip l2 (repeat ())
         !x3 = zip l3 (repeat ())
+        !t1 = fromList x1
+        !t2 = fromList x2
+        !t3 = fromList x3
         !r1 = (take   1000 . randoms . mkStdGen $ seed) :: [Key]
         !r2 = (take  10000 . randoms . mkStdGen $ seed) :: [Key]
         !r3 = (take 100000 . randoms . mkStdGen $ seed) :: [Key]
         !y1 = zip r1 (repeat ())
         !y2 = zip r2 (repeat ())
         !y3 = zip r3 (repeat ())
+        !s1 = fromList y1
+        !s2 = fromList y2
+        !s3 = fromList y3
     defaultMain $
         bgroup "" [
              bench "ins i10^3" $ nf fromList x1
@@ -41,6 +47,12 @@ main = do
            , bench "ins r10^3" $ nf fromList y1
            , bench "ins r10^4" $ nf fromList y2
            , bench "ins r10^5" $ nf fromList y3
+           , bench "lok i10^3" $ nf (map (look t1)) l1
+           , bench "lok i10^4" $ nf (map (look t2)) l2
+           , bench "lok i10^5" $ nf (map (look t3)) l3
+           , bench "lok r10^3" $ nf (map (look s1)) r1
+           , bench "lok r10^4" $ nf (map (look s2)) r2
+           , bench "lok r10^5" $ nf (map (look s3)) r3
            ]
 
 #if SCHEME == 1
@@ -49,3 +61,4 @@ instance (NFData k, NFData v) => NFData (Data.SMap.Map k v)
 instance (NFData k, NFData v) => NFData (Data.RMap.RMap k v)
 #endif
 
+look = flip lookup

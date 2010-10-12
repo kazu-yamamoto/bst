@@ -8,6 +8,8 @@ module Data.RMap (
   , insert  
   , fromList
   , toList
+  , lookup
   ) where
 
+import Prelude hiding (lookup)
 import Data.RMap.Internal
