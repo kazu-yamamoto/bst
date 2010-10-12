@@ -30,7 +30,7 @@ type SMap = Map Int String
 ----------------------------------------------------------------
 
 tests :: [Test]
-tests = [ testGroup "Test Case" [
+tests = [ testGroup "Smoke Test" [
                testCase "ticket4242" test_ticket4242
              , testCase "index"      test_index
              , testCase "size"       test_size

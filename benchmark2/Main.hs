@@ -17,4 +17,3 @@ main = do
         !x3 = zip l3 (repeat ())
         !x = toList $ fromList x3
     x `seq` print "Hello"
-    
