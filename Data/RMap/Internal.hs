@@ -40,8 +40,7 @@ next :: Rand -> Rand
 next g = (1103515245 * g + 12345) `mod` randomMax
 
 randomMax :: Rand
-randomMax = 2^31 - 1
-
+randomMax = 2^(31::Int) - 1
 
 bin :: Ord k => k -> v -> BST k v -> BST k v -> BST k v
 bin k v l r = Bin n k v l r
