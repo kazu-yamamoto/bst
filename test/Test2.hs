@@ -27,11 +27,9 @@ main = defaultMain tests
 test_right :: Assertion
 test_right = do 
     putStrLn $ "(" ++ show deltaU ++ "," ++ show ratioU ++ ")"
-    if deltaU < 45
-        then True @?= True
-        else do
-            unless (valid t) (error "test_right")
-            valid (deleteMin t) @?= True
+    unless (deltaU < 45) $ do
+        unless (valid t) (error "test_right")
+        valid (deleteMin t) @?= True
   where
     x = flor 1 deltaU deltaD
     tx = makeTree x 10
@@ -42,11 +40,9 @@ test_right = do
 ----------------------------------------------------------------
 
 test_left :: Assertion
-test_left = if deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD
-            then True @?= True
-            else do
-                unless (valid t) (error "test_left")
-                valid (deleteMin t) @?= True
+test_left = unless (deltaD * ratioU <= deltaU * ratioD - deltaD * ratioD) $ do
+    unless (valid t) (error "test_left")
+    valid (deleteMin t) @?= True
   where
     (x,y,z) = findLeft
     tx = makeTree x 0
@@ -69,11 +65,9 @@ findLeft' y = if largeEnough
 ----------------------------------------------------------------
 
 test_lower :: Assertion
-test_lower = if deltaU * ratioU >= deltaU * ratioD + deltaD * ratioD
-             then True @?= True
-             else do
-                 unless (valid t) (error "test_lower")
-                 valid (deleteMin t) @?= True
+test_lower = unless (deltaU * ratioU >= deltaU * ratioD + deltaD * ratioD) $ do
+    unless (valid t) (error "test_lower")
+    valid (deleteMin t) @?= True
   where
     (x,y,z,w) = findLower
     tx = makeTree x 0
@@ -99,11 +93,9 @@ findLower' z = if largeEnough
 ----------------------------------------------------------------
 
 test_upper :: Assertion
-test_upper = if deltaU < 25
-             then True @?= True
-             else do
-                 unless (valid t) (error "test_upper")
-                 valid (deleteMin t) @?= True
+test_upper = unless (deltaU < 25) $ do
+    unless (valid t) (error "test_upper")
+    valid (deleteMin t) @?= True
   where
     x = flor 1 deltaU deltaD - 1
     tx = makeTree x 10
