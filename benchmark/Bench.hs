@@ -35,24 +35,12 @@ main = do
         !s3 = fromList y3
     defaultMain $
         bgroup "" [
-             bench "ins i10^3" $ nf fromList x1
-           , bench "ins i10^4" $ nf fromList x2
-           , bench "ins i10^5" $ nf fromList x3
-           , bench "ins r10^3" $ nf fromList y1
-           , bench "ins r10^4" $ nf fromList y2
-           , bench "ins r10^5" $ nf fromList y3
-           , bench "del i10^3" $ nf (map (del t1)) l1
-           , bench "del i10^4" $ nf (map (del t2)) (skip l2 400)
-           , bench "del i10^5" $ nf (map (del t3)) (skip l3 8000)
-           , bench "del r10^3" $ nf (map (del s1)) r1
-           , bench "del r10^4" $ nf (map (del s2)) (skip r2 400)
-           , bench "del r10^5" $ nf (map (del s3)) (skip r3 8000)
-           , bench "lok i10^3" $ nf (map (look t1)) l1
-           , bench "lok i10^4" $ nf (map (look t2)) l2
-           , bench "lok i10^5" $ nf (map (look t3)) l3
-           , bench "lok r10^3" $ nf (map (look s1)) r1
-           , bench "lok r10^4" $ nf (map (look s2)) r2
-           , bench "lok r10^5" $ nf (map (look s3)) r3
+             bench "inc 10^3" $ nf fromList x1
+           , bench "inc 10^4" $ nf fromList x2
+           , bench "inc 10^5" $ nf fromList x3
+           , bench "rnd 10^3" $ nf fromList y1
+           , bench "rnd 10^4" $ nf fromList y2
+           , bench "rnd 10^5" $ nf fromList y3
            ]
 
 instance (NFData k, NFData a) => NFData (Data.SMap.Map k a)
