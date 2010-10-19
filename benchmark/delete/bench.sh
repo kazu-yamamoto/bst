@@ -18,3 +18,5 @@ sleep 60
 ./Bench -m run --compare= --name=original32
 
 ./Bench -m graph --compare=original32,variant32,variant42
+
+sh plot.sh
