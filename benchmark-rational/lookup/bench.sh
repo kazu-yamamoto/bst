@@ -30,8 +30,8 @@ sleep 60
 make clean
 make METHOD=10
 sleep 60
-./Bench -m run --compare= --name=original92-52
+./Bench -m run --compare= --name=original52-75
 
-./Bench -m graph --compare=original3-2,original4-54,original92-119,original92-53,original52-32,original92-52
+./Bench -m graph --compare=original3-2,original4-54,original92-119,original92-53,original52-32,original52-75
 
 sh plot.sh
