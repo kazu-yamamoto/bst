@@ -6,7 +6,7 @@ import Data.SMap.Types
 import Data.Bits ((.&.), shiftR, shiftL)
 
 #if METHOD == 4
-----------------------------------------------------------------    
+----------------------------------------------------------------
 -- Adams
 delta,ratio :: Int
 delta = 3
@@ -25,7 +25,7 @@ isSingle a b = z < ratio * w
     w = size b
 ----------------------------------------------------------------
 #elif METHOD == 5
-----------------------------------------------------------------    
+----------------------------------------------------------------
 -- Nievergelt
 delta,ratio :: Int
 delta = 3
@@ -39,6 +39,81 @@ isBalanced a b = delta * x >= y
 
 isSingle :: Map k a -> Map k a -> Bool
 isSingle a b = z < ratio * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 6
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 4 * x >= y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 4 * z < 5 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 7
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 9 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 9 * z < 11 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 8
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 9 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 3 * z < 5 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 9
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 5 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 2 * z < 3 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 10
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 5 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 5 * z < 7 * w
   where
     z = size a + 1
     w = size b + 1
