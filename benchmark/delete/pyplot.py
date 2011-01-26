@@ -17,9 +17,9 @@ def b(bench_type):
     return 'bench-' + bench_type + '.csv'
 
 labels = {
-    b('variant32'): '<3,2>',
-    b('original32'): '(3,2)',
-    b('variant42'): '<4,2>',
+    b('variant32'): '(3,2)',
+    b('original32'): '<3,2>',
+    b('variant42'): '(4,2)',
     b('log'): 'Log',
     b('c'): '<3/1, 2/1>',
     b('a'): '<5/2, 3/2>',
