@@ -47,51 +47,6 @@ isSingle a b = z < ratio * w
 ----------------------------------------------------------------
 -- Nievergelt
 isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = 4 * x >= y
-  where
-    x = size a + 1
-    y = size b + 1
-
-isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = 4 * z < 5 * w
-  where
-    z = size a + 1
-    w = size b + 1
-----------------------------------------------------------------
-#elif METHOD == 7
-----------------------------------------------------------------
--- Nievergelt
-isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = 9 * x >= 2 * y
-  where
-    x = size a + 1
-    y = size b + 1
-
-isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = 9 * z < 11 * w
-  where
-    z = size a + 1
-    w = size b + 1
-----------------------------------------------------------------
-#elif METHOD == 8
-----------------------------------------------------------------
--- Nievergelt
-isBalanced :: Map k a -> Map k a -> Bool
-isBalanced a b = 9 * x >= 2 * y
-  where
-    x = size a + 1
-    y = size b + 1
-
-isSingle :: Map k a -> Map k a -> Bool
-isSingle a b = 3 * z < 5 * w
-  where
-    z = size a + 1
-    w = size b + 1
-----------------------------------------------------------------
-#elif METHOD == 9
-----------------------------------------------------------------
--- Nievergelt
-isBalanced :: Map k a -> Map k a -> Bool
 isBalanced a b = 5 * x >= 2 * y
   where
     x = size a + 1
@@ -103,7 +58,7 @@ isSingle a b = 2 * z < 3 * w
     z = size a + 1
     w = size b + 1
 ----------------------------------------------------------------
-#elif METHOD == 10
+#elif METHOD == 7
 ----------------------------------------------------------------
 -- Nievergelt
 isBalanced :: Map k a -> Map k a -> Bool
@@ -114,6 +69,81 @@ isBalanced a b = 5 * x >= 2 * y
 
 isSingle :: Map k a -> Map k a -> Bool
 isSingle a b = 5 * z < 7 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 8
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 3 * x >= y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 3 * z < 4 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 9
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 7 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 7 * z < 9 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 10
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 4 * x >= y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 4 * z < 5 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 11
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 4 * x >= y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 3 * z < 5 * w
+  where
+    z = size a + 1
+    w = size b + 1
+----------------------------------------------------------------
+#elif METHOD == 12
+----------------------------------------------------------------
+-- Nievergelt
+isBalanced :: Map k a -> Map k a -> Bool
+isBalanced a b = 7 * x >= 2 * y
+  where
+    x = size a + 1
+    y = size b + 1
+
+isSingle :: Map k a -> Map k a -> Bool
+isSingle a b = 3 * z < 4 * w
   where
     z = size a + 1
     w = size b + 1
