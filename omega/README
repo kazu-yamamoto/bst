@@ -1,0 +1,7 @@
+1. Obtaining the Omega Project source code
+cd ~
+git clone https://github.com/davewathaverford/the-omega-project.git
+
+2. Running the solver for different delta and gamma
+cd [here]
+sh run.sh 2> /dev/null
