@@ -8,4 +8,4 @@ clean:
 
 distclean:
 	make clean
-	rm -f *.csv *.png
+	rm -f *.csv *.png *.eps
