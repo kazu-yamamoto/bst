@@ -113,14 +113,14 @@ for file in csv_files:
 
 ind = np.arange(N)  # the x locations for the groups
 orig_ind = ind
-width = 0.08     # the width of the bars
-space = 0.02
+width = 0.1     # the width of the bars
+space = 0.0
 Width = width + space
 
 offset = (ind[1] - ind[0] - Width * len(csv_files)) / 2
 ind = ind + offset
 
-fig = plt.figure(figsize=(12,6))
+fig = plt.figure(figsize=(9,3))
 ax = fig.add_subplot(111)
 
 rects = {}
@@ -129,9 +129,9 @@ for file in csv_files:
     ind = ind + Width
 
 ax.set_ylabel('time (micro sec) per operation')
-# ax.set_title('Scores by group and gender')
-ax.set_xticks(orig_ind+ (ind[1] - ind[0]) / 2.0)
+ax.set_xticks(orig_ind+ (ind[1] - ind[0]) / 1.5)
 ax.set_xticklabels( tuple(measurements) )
+fig.autofmt_xdate()
 
 import matplotlib.patches as pa
 
@@ -143,16 +143,7 @@ for file in csv_files:
 
 ax.legend( tuple(legend0_list), tuple(legend1_list), bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
 
-# def autolabel(rects):
-#     # attach some text labels
-#     for rect in rects:
-#         height = rect.get_height()
-#         ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
-#                 ha='center', va='bottom')
-
-# autolabel(rects1)
-# autolabel(rects2)
-
 plt.subplots_adjust(right=0.7)
 
-plt.show()
+# plt.show()
+plt.savefig('pyplot.svg')
